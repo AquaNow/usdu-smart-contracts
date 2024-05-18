@@ -1,0 +1,12 @@
+node_modules
+artifacts
+cache
+coverage*
+.env
+.openzeppelin
+.vscode/
+!.vscode/settings.json
+contracts/.DS_Store
+**/crytic-compile
+**/crytic-export
+fireblocks_secret.key
