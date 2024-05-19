@@ -2,7 +2,8 @@ const { ethers, upgrades } = require("hardhat");
 const { developmentChains, networkConfig } = require("../helper-hardhat-config");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deployer } = await getNamedAccounts();
+    const { deployer, pauser, blacklister } = await getNamedAccounts();
+    const { get, log, save } = deployments;
     const chainId = network.config.chainId;
 
     const waitBlockConfirmations = developmentChains.includes(network.name)
@@ -14,12 +15,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const CURRENCY = "USD";
     const DECIMALS = 6;
 
-    const MasterMinter = await ethers.getContractAt("MasterMinter", deployer);
+    const masterMinterDeployment = await get("MasterMinter");
+    const MasterMinter = await ethers.getContractAt("MasterMinter", masterMinterDeployment.address);
 
     const TokenV1 = await ethers.getContractFactory("TokenV1");
     const tokenv1 = await upgrades.deployProxy(
         TokenV1,
-        [NAME, SYMBOL, CURRENCY, DECIMALS, MasterMinter.address, deployer, deployer],
+        [NAME, SYMBOL, CURRENCY, DECIMALS, MasterMinter.address, pauser, blacklister],
         {
             unsafeAllow: ['delegatecall'],
             unsafeAllowCustomTypes: true,
@@ -27,7 +29,15 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         }
     );
     await tokenv1.deployTransaction.wait(waitBlockConfirmations);
-    console.log(`Proxy Address: ${tokenv1.address}`);
+    log(`Proxy Address: ${tokenv1.address}`);
+
+    // Save the deployment
+    const artifact = await deployments.getExtendedArtifact('TokenV1');
+    const proxyDeployments = {
+        address: tokenv1.address,
+        ...artifact
+    };
+    await save('TokenV1', proxyDeployments);
 };
 
 module.exports.tags = ["all", "tokenV1"];

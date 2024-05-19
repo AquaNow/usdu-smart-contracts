@@ -62,7 +62,13 @@ module.exports = {
   },
   namedAccounts: {
     deployer: {
-        default: 0, // here this will by default take the first account as deployer
+      default: 0, // Deployer will be the first account
+    },
+    blacklister: {
+      default: 3, // Blacklister will be the third account
+    },
+    pauser: {
+      default: 4, // Pauser will be the fourth account
     },
   },
   gasReporter: {
