@@ -2,53 +2,68 @@ require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("@openzeppelin/hardhat-upgrades");
 require("solidity-coverage");
-require("@fireblocks/hardhat-fireblocks");
+require("@fireblocks/fireblocks-web3-provider");
 require("dotenv").config();
+require("hardhat-gas-reporter");
 
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || "https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY"
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "https://eth-sepolia.g.alchemy.com/v2/YOUR-API-KEY"
-const FIREBLOCKS_API_KEY = process.env.FIREBLOCKS_API_KEY
-const VAULT_ID = process.env.VAULT_ID
-const PRIVATE_KEY = process.env.PRIVATE_KEY
-const LOCALHOST_RPC_URL = process.env.LOCALHOST_RPC_URL || "http://localhost:8545"
-const BSC_TESTNET_RPC_URL = process.env.BSC_TESTNET_RPC_URL
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "https://eth-sepolia.g.alchemy.com/v2/YOUR-API-KEY";
+const BSC_TESTNET_RPC_URL = process.env.BSC_TESTNET_RPC_URL || "https://eth-bsctestnet.g.alchemy.com/v2/YOUR-API-KEY";
+const LOCALHOST_RPC_URL = process.env.LOCALHOST_RPC_URL || "http://localhost:8545";
+const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x";
+const FIREBLOCKS_API_KEY = process.env.FIREBLOCKS_API_KEY || "Your fireblocks API key";
+const FIREBLOCKS_PRIVATE_KEY_PATH = process.env.FIREBLOCKS_PRIVATE_KEY_PATH || "./fireblocks_secret.key";
+const VAULT_ID = process.env.VAULT_ID || "Your fireblocks vault id"
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key";
+const REPORT_GAS = process.env.REPORT_GAS || false;
 
-console.log(`Sepolia rpc --> ${SEPOLIA_RPC_URL}`)
+const DEPLOY_METHOD = process.env.DEPLOY_METHOD || "privatekey"; // default to private key if not specified
+
+function getNetworkConfig(url, chainId) {
+  if (DEPLOY_METHOD === "fireblocks") {
+      return {
+          url,
+          saveDeployments: true,
+          chainId,
+          fireblocks: {
+              privateKey: FIREBLOCKS_PRIVATE_KEY_PATH,
+              apiKey: FIREBLOCKS_API_KEY,
+              vaultAccountIds: VAULT_ID,
+          },
+      };
+  } else {
+      return {
+          url,
+          accounts: PRIVATE_KEY !== "0x" ? [PRIVATE_KEY] : [],
+          chainId,
+          saveDeployments: true,
+      };
+  }
+}
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   defaultNetwork: "hardhat",
   networks: {
-    sepolia: {
-      url: SEPOLIA_RPC_URL,
-      fireblocks: {
-        privateKey: "./fireblocks_secret.key",
-        apiKey: FIREBLOCKS_API_KEY,
-        vaultAccountIds: ["447"],
-      },
-      saveDeployments: true,
-      chainId: 11155111
+    hardhat: {
+        chainId: 31337,
     },
     localhost: {
       url: LOCALHOST_RPC_URL,
       chainId: 31337
     },
-    mainnet: {
-      url: MAINNET_RPC_URL,
-      fireblocks: {
-        privateKey: "./fireblocks_secret.key",
-        apiKey: FIREBLOCKS_API_KEY,
-        vaultAccountIds: VAULT_ID,
-      },
-    },
-    bscTestnet: {
-      url: BSC_TESTNET_RPC_URL,
-      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-      chainId: 97,
-    },
+    sepolia: getNetworkConfig(SEPOLIA_RPC_URL, 11155111),
+    mainnet: getNetworkConfig(MAINNET_RPC_URL, 1),
+    bscTestnet: getNetworkConfig(BSC_TESTNET_RPC_URL, 97),
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
+  },
+  gasReporter: {
+    enabled: REPORT_GAS,
+    currency: "USD",
+    outputFile: "gas-report.txt",
+    noColors: true,
   },
   solidity: {
       version: "0.8.9",
