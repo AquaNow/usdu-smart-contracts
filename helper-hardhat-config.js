@@ -5,7 +5,7 @@ const networkConfig = {
     },
     11155111: {
         name: "sepolia",
-        confirmations: 6,
+        confirmations: 2,
     }
 }
 

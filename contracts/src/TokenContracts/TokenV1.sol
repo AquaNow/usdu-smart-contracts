@@ -6,7 +6,6 @@ import {AbstractTokenV1} from "./AbstractTokenV1.sol";
 import {Ownable} from "./Ownable.sol";
 import {Pausable} from "./Pausable.sol";
 import {Blacklistable} from "./Blacklistable.sol";
-// import {Rescuable} from "./Rescuable.sol";
 
 /**
  * @title Token
