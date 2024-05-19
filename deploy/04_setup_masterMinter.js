@@ -1,0 +1,24 @@
+const { ethers } = require("hardhat");
+const { developmentChains, networkConfig } = require("../helper-hardhat-config");
+
+module.exports = async ({ getNamedAccounts, deployments }) => {
+    const { deployer } = await getNamedAccounts();
+    const chainId = network.config.chainId;
+
+    const waitBlockConfirmations = developmentChains.includes(network.name)
+        ? networkConfig[chainId].confirmations || 1
+        : networkConfig.VERIFICATION_BLOCK_CONFIRMATIONS;
+
+    const masterMinter = await ethers.getContractAt("MasterMinter", deployer);
+
+    const setControllerAdminTx = await masterMinter.setControllerAdmin(deployer);
+    await setControllerAdminTx.wait(waitBlockConfirmations);
+    console.log("Controller Admin set to owner.");
+
+    const configureControllerTx = await masterMinter.configureController(deployer, deployer);
+    await configureControllerTx.wait(waitBlockConfirmations);
+    console.log("Controller configured with minter.");
+};
+
+module.exports.tags = ["all", "setupMasterMinter"];
+module.exports.dependencies = ["setupTokenV1"];

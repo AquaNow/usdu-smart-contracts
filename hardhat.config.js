@@ -3,8 +3,9 @@ require("@nomiclabs/hardhat-waffle");
 require("@openzeppelin/hardhat-upgrades");
 require("solidity-coverage");
 require("@fireblocks/fireblocks-web3-provider");
-require("dotenv").config();
 require("hardhat-gas-reporter");
+require("hardhat-deploy");
+require("dotenv").config();
 
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || "https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY"
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "https://eth-sepolia.g.alchemy.com/v2/YOUR-API-KEY";
@@ -58,6 +59,11 @@ module.exports = {
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
+  },
+  namedAccounts: {
+    deployer: {
+        default: 0, // here this will by default take the first account as deployer
+    },
   },
   gasReporter: {
     enabled: REPORT_GAS,
