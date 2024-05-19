@@ -15,7 +15,8 @@ abstract contract PermissionAdmin is Ownable {
     event PermissionAdminChanged(address indexed admin);
 
     error PermissionAdmin__CallerNotPermissionAdmin();
-
+    error PermissionAdmin__NoZeroAddress(address account);
+    
     modifier onlyPermissionAdmin() {
         if (msg.sender != _permissionAdmin) {
             revert PermissionAdmin__CallerNotPermissionAdmin();
@@ -35,7 +36,7 @@ abstract contract PermissionAdmin is Ownable {
      * @notice sets the current permission admin
      */
     function setPermissionAdmin(address _newAdmin) external onlyOwner {
-        if (_newAdmin == address(0)) revert NoZeroAddress(_newAdmin);
+        if (_newAdmin == address(0)) revert PermissionAdmin__NoZeroAddress(_newAdmin);
         _permissionAdmin = _newAdmin;
         emit PermissionAdminChanged(_permissionAdmin);
     }

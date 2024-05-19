@@ -39,6 +39,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
     error NotMinter();
     error NotMasterMinter();
     error NoZeroAddress(address account);
+    error MintMustBeGreaterThanZero();
     error AlreadyBlacklisted(address account);
     error AlreadyUnpaused();
     error AmountExceedsBalance();
