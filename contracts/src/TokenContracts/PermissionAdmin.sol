@@ -13,13 +13,14 @@ abstract contract PermissionAdmin is Ownable{
 
     address private _permissionAdmin;
 
-    event permissionAdminChanged(address indexed admin);
+    event PermissionAdminChanged(address indexed admin);
+
+    error PermissionAdmin__CallerNotPermissionAdmin();
 
     modifier onlyPermissionAdmin() {
-        require(
-            msg.sender == _permissionAdmin, 
-            "caller not permission admin"
-        );
+        if (msg.sender != _permissionAdmin) {
+            revert PermissionAdmin__CallerNotPermissionAdmin();
+        }
         _;
     }
 
@@ -37,7 +38,7 @@ abstract contract PermissionAdmin is Ownable{
     function setPermissionAdmin(address _newAdmin) external onlyOwner {
         if (_newAdmin == address(0)) revert NoZeroAddress(_newAdmin);
         _permissionAdmin = _newAdmin;
-        emit permissionAdminChanged(_permissionAdmin);
+        emit PermissionAdminChanged(_permissionAdmin);
     }
 
 }

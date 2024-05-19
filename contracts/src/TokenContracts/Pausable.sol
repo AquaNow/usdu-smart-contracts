@@ -1,28 +1,33 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.9;
 
-import { PermissionAdmin } from "./PermissionAdmin.sol";
+import {PermissionAdmin} from "./PermissionAdmin.sol";
 
 /**
  * @notice Base contract which allows children to implement an emergency stop
  * mechanism
  */
-
 contract Pausable is PermissionAdmin {
 
     address internal _pauser;
     bool public paused;
 
-    event Pause();
-    event Unpause();
-    event pauserChanged(address indexed newPauser);
+    event Paused();
+    event Unpaused();
+    event PauserChanged(address indexed newPauser);
+
+    error Pausable__Paused();
+    error Pausable__NotPauser();
+    error Pausable__AlreadyPaused();
+    error Pausable__AlreadyUnpaused();
+    error Pausable__NoZeroAddress(address account);
 
     /**
      * @dev Modifier to make a function callable only when the contract is not paused.
      */
     modifier whenNotPaused() {
-        require(!paused, "paused");
+        if (paused) revert Pausable__Paused();
         _;
     }
 
@@ -30,12 +35,12 @@ contract Pausable is PermissionAdmin {
      * @dev throws if called by any account other than the pauser
      */
     modifier onlyPauser() {
-        require(msg.sender == _pauser, "caller not pauser");
+        if (msg.sender != _pauser) revert Pausable__NotPauser();
         _;
     }
 
     /**
-     * @notice Returns current rescuer
+     * @notice Returns current pauser
      * @return Pauser's address
      */
     function getPauser() external view returns (address) {
@@ -46,33 +51,30 @@ contract Pausable is PermissionAdmin {
      * @dev called by the owner to pause, triggers stopped state
      */
     function pause() external onlyPauser {       
-       require(!paused, "already paused");
-       paused = true;
-       emit Pause();
-   }
-
+        if (paused) revert Pausable__AlreadyPaused();
+        paused = true;
+        emit Paused();
+    }
 
     function initPaused() public onlyInitializing {
         paused = false;
     }
+
     /**
      * @dev called by the owner to unpause, returns to normal state
      */
     function unpause() external onlyPauser {
-       require(paused, "already unpaused");
-       paused = false;
-       emit Unpause();
+        if (!paused) revert Pausable__AlreadyUnpaused();
+        paused = false;
+        emit Unpaused();
     }
-
 
     /**
      * @dev update the pauser role
      */
     function updatePauser(address _newPauser) external onlyPermissionAdmin {
-        //require(initialized, "Pausable: TokenV1 not initialized");
-        if (_newPauser == address(0)) revert NoZeroAddress(_newPauser);
+        if (_newPauser == address(0)) revert Pausable__NoZeroAddress(_newPauser);
         _pauser = _newPauser;
-        emit pauserChanged(_pauser);
+        emit PauserChanged(_pauser);
     }
 }
-

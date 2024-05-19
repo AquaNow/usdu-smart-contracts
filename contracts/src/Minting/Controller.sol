@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.9;
 
@@ -33,27 +33,36 @@ contract Controller is ControllerAdmin {
      * address.
      */
     modifier onlyController() {
-        require(
-            isController[msg.sender],
-            "only controllers"
-        );
-
+        if (!isController[msg.sender]) {
+            revert Controller__OnlyControllers();
+        }
         _;
     }
+
+    /* Errors */
+    error Controller__OnlyControllers();
+    error Controller__NoZeroAddress();
+    error Controller__MinterHasController();
+    error Controller__ControllerNoMinters();
+    error Controller__CallerNotController();
+    error Controller__ControllerHasNoMinters();
 
     function configureController(address _controller, address _minter)
         external
         onlyControllerAdmin
     {
-        require(_controller != address(0), "No zero addr");
-        require(_minter != address(0), "No zero addr");
+        if (_controller == address(0)) {
+            revert Controller__NoZeroAddress();
+        }
+        if (_minter == address(0)) {
+            revert Controller__NoZeroAddress();
+        }
         if (minterController[_minter] == address(0)) {
             minterController[_minter] = _controller;
         }
-        require(
-            minterController[_minter] == _controller,
-            "minter has controller"
-        );
+        if (minterController[_minter] != _controller) {
+            revert Controller__MinterHasController();
+        }
         controllers[_controller].push(_minter);
         isMinter[_minter] = true;
         isController[_controller] = true;
@@ -68,14 +77,12 @@ contract Controller is ControllerAdmin {
         view
         returns (address[] memory)
     {
-        require(
-            controllers[_controller].length != 0,
-            "controller no minters"
-        );
-        require(
-            isController[msg.sender],
-            "caller not controller"
-        );
+        if (controllers[_controller].length == 0) {
+            revert Controller__ControllerNoMinters();
+        }
+        if (!isController[msg.sender]) {
+            revert Controller__CallerNotController();
+        }
         return controllers[_controller];
     }
 
@@ -84,11 +91,12 @@ contract Controller is ControllerAdmin {
      * @param _controller The controller to disable.
      */
     function removeController(address _controller) external onlyControllerAdmin {
-        require(_controller != address(0), "No zero addr");
-        require(
-            controllers[_controller].length != 0,
-            "controller has no minters"
-        );
+        if (_controller == address(0)) {
+            revert Controller__NoZeroAddress();
+        }
+        if (controllers[_controller].length == 0) {
+            revert Controller__ControllerHasNoMinters();
+        }
         isController[_controller] = false;
         delete controllers[_controller];
         emit ControllerRemoved(_controller);

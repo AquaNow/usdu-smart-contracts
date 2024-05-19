@@ -1,10 +1,9 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.9;
 
-
-import "./Controller.sol";
-import "./MinterManagerInterface.sol";
+import {Controller} from "./Controller.sol";
+import {MinterManagementInterface} from "./MinterManagerInterface.sol";
 import {Ownable} from "../TokenContracts/Ownable.sol";
 
 contract MintController is Controller {
@@ -40,6 +39,16 @@ contract MintController is Controller {
         uint256 decrement,
         uint256 newAllowance
     );
+
+    /* Errors */
+    error MintController__NoMinters();
+    error MintController__NoZeroAddress(address account);
+    error MintController__ExceedMaxMinters();
+    error MintController__MinterHasController();
+    error MintController__IncrementTooSmall();
+    error MintController__OnlyForMinterAllowance();
+    error MintController__AllowanceTooSmall();
+    error MintController__NotMinterController();
 
     /*
      * @notice Initializes the minterManager.
@@ -86,7 +95,7 @@ contract MintController is Controller {
 
         uint256 len = controllers[msg.sender].length;
 
-        require(len != 0, "controller has no minters");
+        if (len == 0) revert MintController__NoMinters();
         bool minterFoundAndRemoved = false;
         for (uint256 i=0; i < len; i++) {
             if (controllers[msg.sender][i] == _minter) {
@@ -116,22 +125,17 @@ contract MintController is Controller {
         address _minter,
         uint256 _newAllowance   
     ) external onlyController returns (bool) {
-        if (_minter == address(0)) revert NoZeroAddress(_minter);
-        require(controllers[msg.sender].length <= _maxNumOfMinters, "number of minters for controller exceeded");
+        if (_minter == address(0)) revert MintController__NoZeroAddress(_minter);
+        if (controllers[msg.sender].length > _maxNumOfMinters) revert MintController__ExceedMaxMinters();
         //total minted vs allowance
         if (minterController[_minter] == address(0)) {
             minterController[_minter] = msg.sender;
-            require(controllers[msg.sender].length + 1 <= _maxNumOfMinters, "number of minters for controller exceeded");
-
-
+            if (controllers[msg.sender].length + 1 > _maxNumOfMinters) revert MintController__ExceedMaxMinters();
 
             controllers[msg.sender].push(_minter);
             
         }
-        require(
-            minterController[_minter] == msg.sender,
-            "minter has controller"
-        );
+        if (minterController[_minter] != msg.sender) revert MintController__MinterHasController();
         isMinter[_minter] = true;
         minterAllowance[_minter] = _newAllowance;
         emit MinterConfigured(msg.sender, _minter, _newAllowance);
@@ -152,8 +156,8 @@ contract MintController is Controller {
         uint256 _allowanceIncrement,
         address _minter
     ) external onlyController returns (bool) {
-        require(_allowanceIncrement > 0, "increment too small");
-        require(minterManager.isMinter(_minter), "only for minter allowance");
+        if (_allowanceIncrement <= 0) revert MintController__IncrementTooSmall();
+        if (!minterManager.isMinter(_minter)) revert MintController__OnlyForMinterAllowance();
 
         uint256 currentAllowance = minterManager.getMinterAllowance(_minter);
         uint256 newAllowance = currentAllowance + _allowanceIncrement;
@@ -182,12 +186,9 @@ contract MintController is Controller {
         uint256 _allowanceDecrement,
         address _minter
     ) external onlyController returns (bool) {
-        require(_allowanceDecrement > 0, "allowance too small");
-        require(
-            minterController[_minter] == msg.sender,
-            "not minter's controller"
-        );
-        require(minterManager.isMinter(_minter), "only for minter allowance");
+        if (_allowanceDecrement <= 0) revert MintController__AllowanceTooSmall();
+        if (minterController[_minter] != msg.sender) revert MintController__NotMinterController();
+        if (!minterManager.isMinter(_minter)) revert MintController__OnlyForMinterAllowance();
 
         uint256 currentAllowance = minterManager.getMinterAllowance(_minter);
 

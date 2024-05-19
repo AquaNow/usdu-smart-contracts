@@ -1,19 +1,20 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * @notice The Ownable contract has an owner address, and provides basic
  * authorization control functions
  */
-contract Ownable is Initializable{
+contract Ownable is Initializable {
     // Owner of the contract
     address private _owner;
     //bool public initialized;
 
-    error NoZeroAddress(address value);
+    error Ownable__NoZeroAddress(address value);
+    error Ownable__CallerNotOwner();
 
     /**
      * @dev Event to show ownership has been transferred
@@ -22,11 +23,11 @@ contract Ownable is Initializable{
      */
     event OwnershipTransferred(address previousOwner, address newOwner);
 
-     /**
+    /**
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(msg.sender == _owner, "caller not owner");
+        if (msg.sender != _owner) revert Ownable__CallerNotOwner();
         _;
     }
 
@@ -37,7 +38,7 @@ contract Ownable is Initializable{
     //     setOwner(msg.sender);
     // }
     function initialize(address owner) public onlyInitializing {
-       setOwner(owner);
+        setOwner(owner);
     }
 
     /**
@@ -60,7 +61,7 @@ contract Ownable is Initializable{
      * @param newOwner The address to transfer ownership to.
      */
     function transferOwnership(address newOwner) external onlyOwner {
-        if (newOwner == address(0)) revert NoZeroAddress(newOwner);
+        if (newOwner == address(0)) revert Ownable__NoZeroAddress(newOwner);
         emit OwnershipTransferred(_owner, newOwner);
         setOwner(newOwner);
     }

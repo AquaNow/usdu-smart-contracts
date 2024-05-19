@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.9;
 
@@ -21,7 +21,7 @@ contract Blacklistable is PermissionAdmin {
      * @dev Throws if called by any account other than the blacklister
      */
     modifier onlyBlacklister() {
-        require(msg.sender == _blacklister, "caller not blacklister");
+        if (msg.sender != _blacklister) revert Blacklistable__CallerNotBlacklister();
         _;
     }
 
@@ -30,13 +30,19 @@ contract Blacklistable is PermissionAdmin {
      * @param _account The address to check
      */
     modifier notBlacklisted(address _account) {
-        if (_blacklister == address(0)) revert NoZeroAddress(_blacklister);
-        require(!blacklisted[_account], "account blacklisted");
+        if (_blacklister == address(0)) revert Blacklistable__NoZeroAddress(_blacklister);
+        if (blacklisted[_account]) revert Blacklistable__AccountBlacklisted(_account);
         _;
     }
 
+    error Blacklistable__CallerNotBlacklister();
+    error Blacklistable__NoZeroAddress(address account);
+    error Blacklistable__AccountBlacklisted(address account);
+    error Blacklistable__AlreadyBlacklisted(address account);
+    error Blacklistable__BlacklisterSelfBlacklist();
+
     /**
-     * @notice Returns current rescuer
+     * @notice Returns current blacklister
      * @return Blacklister's address
      */
     function getBlacklister() external view returns (address) {
@@ -56,9 +62,9 @@ contract Blacklistable is PermissionAdmin {
      * @param _account The address to blacklist
      */
     function blacklist(address _account) external onlyBlacklister {
-        require(!blacklisted[_account], "already blacklisted");
-        require(_account != _blacklister, "blacklister cannot blacklist itself");
-        if (_account == address(0)) revert NoZeroAddress(_account);
+        if (blacklisted[_account]) revert Blacklistable__AlreadyBlacklisted(_account);
+        if (_account == _blacklister) revert Blacklistable__BlacklisterSelfBlacklist();
+        if (_account == address(0)) revert Blacklistable__NoZeroAddress(_account);
         blacklisted[_account] = true;
         emit Blacklisted(_account);
     }
@@ -76,9 +82,7 @@ contract Blacklistable is PermissionAdmin {
         external
         onlyPermissionAdmin
     {
-        //require(initialized, "TokenV1 not initialized");
-        // require(_newBlacklister != address(0), "No zero addr");
-        if (_newBlacklister == address(0)) revert NoZeroAddress(_newBlacklister);
+        if (_newBlacklister == address(0)) revert Blacklistable__NoZeroAddress(_newBlacklister);
         _blacklister = _newBlacklister;
         emit BlacklisterChanged(_blacklister);
     }
