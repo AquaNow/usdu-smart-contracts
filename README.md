@@ -1,1 +1,121 @@
-# usdu-smart-contracts
+# USDU Smart Contract
+
+This repository contains the smart contracts for the USDU token, including the implementation of token management functionalities such as minting, burning, pausing, and blacklisting. The contracts are designed to be upgradeable to ensure future enhancements and improvements.
+
+## Requirements
+
+To get started with the USDU smart contract development, ensure you have the following prerequisites:
+
+- Node.js (>=18.0.0)
+- npm (>=10.0.0)
+- Hardhat (>=2.0.0)
+- Solidity (>=0.8.0)
+
+## Quickstart Guide
+
+Follow these steps to set up the project and start developing:
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/AquaNow/usdu-smart-contracts.git
+cd usdu-smart-contracts
+```
+
+### 2. Install Dependencies
+
+Ensure you have Node.js and npm installed. Then, run the following command to install the required dependencies:
+
+```bash
+npm install
+```
+
+### 3. Compile the Contracts
+
+Use Hardhat to compile the Solidity smart contracts:
+
+```bash
+npx hardhat compile
+```
+
+### 4. Run Tests
+
+Execute the test suite to ensure everything is working as expected:
+
+```bash
+npx hardhat test
+```
+
+### 5. Lint the Code
+
+Check your code for potential issues using Solhint:
+
+```bash
+npm run lint
+```
+
+### 6. Format Code
+
+Ensure your code follows the coding standards by running Prettier:
+
+```bash
+npm run format
+```
+
+## Deployment
+
+Deploy the smart contracts to various networks using Hardhat. Before deploying, ensure you have configured the necessary environment variables in a `.env` file.
+
+### Environment Variables
+
+- `MAINNET_RPC_URL`: URL for the Ethereum mainnet RPC endpoint.
+- `SEPOLIA_RPC_URL`: URL for the Sepolia testnet RPC endpoint.
+- `BSC_TESTNET_RPC_URL`: URL for the Binance Smart Chain testnet RPC endpoint.
+- `LOCALHOST_RPC_URL`: URL for the local Hardhat node.
+- `PRIVATE_KEY`: Your private key for deploying the contracts.
+- `FIREBLOCKS_API_KEY`: Your Fireblocks API key.
+- `FIREBLOCKS_PRIVATE_KEY_PATH`: Path to your Fireblocks private key.
+- `VAULT_ID`: Your Fireblocks vault ID.
+- `ETHERSCAN_API_KEY`: API key for verifying contracts on Etherscan.
+- `REPORT_GAS`: Set to `true` to enable gas reporting.
+- `DEPLOY_METHOD`: Method of deployment (`privatekey` or `fireblocks`).
+- `POLYGONSCAN_API_KEY`: API key for verifying contracts on Polygonscan.
+
+### Example `.env` File
+
+```
+MAINNET_RPC_URL=https://eth-mainnet.alchemyapi.io/v2/your-api-key
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/your-api-key
+BSC_TESTNET_RPC_URL=https://bsc-testnet.blockpi.network/v1/rpc/public
+LOCALHOST_RPC_URL=http://localhost:8545
+PRIVATE_KEY=0x
+FIREBLOCKS_API_KEY=your-fireblocks-api-key
+FIREBLOCKS_PRIVATE_KEY_PATH=your-fireblocks-private-key-path
+VAULT_ID=your-vault-id
+ETHERSCAN_API_KEY=your-etherscan-api-key
+REPORT_GAS=false
+DEPLOY_METHOD=privatekey
+POLYGONSCAN_API_KEY=your-polygonscan-api-key
+```
+
+### Deployment Command
+
+To deploy the contracts, run the following command with the appropriate network flag:
+
+```bash
+npx hardhat deploy --network <network-name>
+```
+
+## Project Structure
+
+- `contracts/`: Contains all the Solidity smart contracts.
+- `deploy/`: Contains deployment scripts for Hardhat.
+- `scripts/`: Contains scripts for deployment and other tasks.
+- `test/`: Contains the test scripts for the smart contracts.
+- `.prettierrc`: Configuration file for Prettier.
+- `.solhint.json`: Configuration file for Solhint.
+- `hardhat.config.js`: Configuration file for Hardhat.
+
+## License
+
+This project is licensed under the MIT License.
