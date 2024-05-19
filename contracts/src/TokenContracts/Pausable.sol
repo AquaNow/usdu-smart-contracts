@@ -17,7 +17,7 @@ contract Pausable is PermissionAdmin {
     event PauserChanged(address indexed newPauser);
 
     error Pausable__Paused();
-    error Pausable__NotPauser();
+    error Pausable__CallerNotPauser();
     error Pausable__AlreadyPaused();
     error Pausable__AlreadyUnpaused();
     error Pausable__NoZeroAddress(address account);
@@ -34,7 +34,7 @@ contract Pausable is PermissionAdmin {
      * @dev throws if called by any account other than the pauser
      */
     modifier onlyPauser() {
-        if (msg.sender != _pauser) revert Pausable__NotPauser();
+        if (msg.sender != _pauser) revert Pausable__CallerNotPauser();
         _;
     }
 
