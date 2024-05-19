@@ -9,7 +9,6 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
  * mechanism
  */
 contract Pausable is PermissionAdmin {
-
     address internal _pauser;
     bool public paused;
 
@@ -50,7 +49,7 @@ contract Pausable is PermissionAdmin {
     /**
      * @dev called by the owner to pause, triggers stopped state
      */
-    function pause() external onlyPauser {       
+    function pause() external onlyPauser {
         if (paused) revert Pausable__AlreadyPaused();
         paused = true;
         emit Paused();

@@ -10,5 +10,4 @@ import {MintController} from "./MintController.sol";
  * contract that implements the MinterManagerInterface.
  * @dev MasterMinter inherits all its functionality from MintController.
  */
-contract MasterMinter is MintController {
-}
+contract MasterMinter is MintController {}

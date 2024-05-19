@@ -7,7 +7,6 @@ import {MinterManagementInterface} from "./MinterManagerInterface.sol";
 import {Ownable} from "../TokenContracts/Ownable.sol";
 
 contract MintController is Controller {
-
     /*
      * @title MinterManagementInterface
      * @notice MintController calls the minterManager to execute/record minter
@@ -16,10 +15,7 @@ contract MintController is Controller {
     MinterManagementInterface internal minterManager;
     mapping(address => uint256) internal minterAllowance;
 
-    event MinterManagerSet(
-        address indexed _oldMinterManager,
-        address indexed _newMinterManager
-    );
+    event MinterManagerSet(address indexed _oldMinterManager, address indexed _newMinterManager);
     event MinterConfigured(
         address indexed _msgSender,
         address indexed _minter,
@@ -54,7 +50,10 @@ contract MintController is Controller {
      * @notice Initializes the minterManager.
      * @param _minterManager The address of the minterManager contract.
      */
-    function initializeMintController(address _minterManager, uint256 _initMaxNumOfMinters) public initializer {
+    function initializeMintController(
+        address _minterManager,
+        uint256 _initMaxNumOfMinters
+    ) public initializer {
         Ownable.initialize(msg.sender);
         _maxNumOfMinters = _initMaxNumOfMinters;
         minterManager = MinterManagementInterface(_minterManager);
@@ -63,11 +62,7 @@ contract MintController is Controller {
     /*
      * @notice gets the minterManager
      */
-    function getMinterManager()
-        external
-        view
-        returns (MinterManagementInterface)
-    {
+    function getMinterManager() external view returns (MinterManagementInterface) {
         return minterManager;
     }
 
@@ -87,20 +82,15 @@ contract MintController is Controller {
     /**
      * @notice Removes the controller's own minter.
      */
-    function removeMinter(address _minter)
-        external
-        onlyController
-        returns (bool)
-    {
-
+    function removeMinter(address _minter) external onlyController returns (bool) {
         uint256 len = controllers[msg.sender].length;
 
         if (len == 0) revert MintController__NoMinters();
         bool minterFoundAndRemoved = false;
-        for (uint256 i=0; i < len; i++) {
+        for (uint256 i = 0; i < len; i++) {
             if (controllers[msg.sender][i] == _minter) {
                 minterController[_minter] = address(0);
-                controllers[msg.sender][i] = controllers[msg.sender][len-1];
+                controllers[msg.sender][i] = controllers[msg.sender][len - 1];
                 isMinter[_minter] = false;
                 controllers[msg.sender].pop();
                 emit MinterRemoved(msg.sender, _minter);
@@ -114,7 +104,6 @@ contract MintController is Controller {
         } else {
             return false;
         }
-       
     }
 
     /**
@@ -123,27 +112,24 @@ contract MintController is Controller {
      */
     function configureMinter(
         address _minter,
-        uint256 _newAllowance   
+        uint256 _newAllowance
     ) external onlyController returns (bool) {
         if (_minter == address(0)) revert MintController__NoZeroAddress(_minter);
-        if (controllers[msg.sender].length > _maxNumOfMinters) revert MintController__ExceedMaxMinters();
+        if (controllers[msg.sender].length > _maxNumOfMinters)
+            revert MintController__ExceedMaxMinters();
         //total minted vs allowance
         if (minterController[_minter] == address(0)) {
             minterController[_minter] = msg.sender;
-            if (controllers[msg.sender].length + 1 > _maxNumOfMinters) revert MintController__ExceedMaxMinters();
+            if (controllers[msg.sender].length + 1 > _maxNumOfMinters)
+                revert MintController__ExceedMaxMinters();
 
             controllers[msg.sender].push(_minter);
-            
         }
         if (minterController[_minter] != msg.sender) revert MintController__MinterHasController();
         isMinter[_minter] = true;
         minterAllowance[_minter] = _newAllowance;
         emit MinterConfigured(msg.sender, _minter, _newAllowance);
-        return
-            _setMinterAllowance(
-                _minter,
-                _newAllowance
-            );
+        return _setMinterAllowance(_minter, _newAllowance);
     }
 
     /**
@@ -162,18 +148,9 @@ contract MintController is Controller {
         uint256 currentAllowance = minterManager.getMinterAllowance(_minter);
         uint256 newAllowance = currentAllowance + _allowanceIncrement;
 
-        emit MinterAllowanceIncremented(
-            msg.sender,
-            _minter,
-            _allowanceIncrement,
-            newAllowance
-        );
+        emit MinterAllowanceIncremented(msg.sender, _minter, _allowanceIncrement, newAllowance);
 
-        return
-            _setMinterAllowance(
-                _minter,
-                newAllowance
-            );
+        return _setMinterAllowance(_minter, newAllowance);
     }
 
     /**
@@ -193,9 +170,7 @@ contract MintController is Controller {
         uint256 currentAllowance = minterManager.getMinterAllowance(_minter);
 
         uint256 actualAllowanceDecrement = (
-            currentAllowance > _allowanceDecrement
-                ? _allowanceDecrement
-                : currentAllowance
+            currentAllowance > _allowanceDecrement ? _allowanceDecrement : currentAllowance
         );
 
         uint256 newAllowance = currentAllowance - actualAllowanceDecrement;
@@ -206,11 +181,7 @@ contract MintController is Controller {
             actualAllowanceDecrement,
             newAllowance
         );
-        return
-            _setMinterAllowance(
-                _minter,
-                newAllowance
-            );
+        return _setMinterAllowance(_minter, newAllowance);
     }
 
     // Internal functions
@@ -221,14 +192,7 @@ contract MintController is Controller {
      * @param _minter Minter to set new allowance of.
      * @param _newAllowance New allowance to be set for minter.
      */
-    function _setMinterAllowance(
-        address _minter,
-        uint256 _newAllowance
-    ) internal returns (bool) {
-        return
-            minterManager.configureMinter(
-                _minter,
-                _newAllowance
-            );
+    function _setMinterAllowance(address _minter, uint256 _newAllowance) internal returns (bool) {
+        return minterManager.configureMinter(_minter, _newAllowance);
     }
 }

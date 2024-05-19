@@ -9,7 +9,6 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
  * @dev Allows accounts to be blacklisted by a "blacklister" role
  */
 contract Blacklistable is PermissionAdmin {
-
     address internal _blacklister;
     mapping(address => bool) public blacklisted;
 
@@ -78,10 +77,7 @@ contract Blacklistable is PermissionAdmin {
         emit UnBlacklisted(_account);
     }
 
-    function updateBlacklister(address _newBlacklister)
-        external
-        onlyPermissionAdmin
-    {
+    function updateBlacklister(address _newBlacklister) external onlyPermissionAdmin {
         if (_newBlacklister == address(0)) revert Blacklistable__NoZeroAddress(_newBlacklister);
         _blacklister = _newBlacklister;
         emit BlacklisterChanged(_blacklister);

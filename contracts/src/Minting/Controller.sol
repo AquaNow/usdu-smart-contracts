@@ -20,10 +20,7 @@ contract Controller is ControllerAdmin {
     mapping(address => bool) public isController;
     mapping(address => bool) public isMinter;
 
-    event ControllerConfigured(
-        address indexed _controller,
-        address indexed _minter
-    );
+    event ControllerConfigured(address indexed _controller, address indexed _minter);
 
     event ControllerRemoved(address indexed _controller);
     event SignerModified(address indexed _signer);
@@ -47,10 +44,10 @@ contract Controller is ControllerAdmin {
     error Controller__CallerNotController();
     error Controller__ControllerHasNoMinters();
 
-    function configureController(address _controller, address _minter)
-        external
-        onlyControllerAdmin
-    {
+    function configureController(
+        address _controller,
+        address _minter
+    ) external onlyControllerAdmin {
         if (_controller == address(0)) {
             revert Controller__NoZeroAddress();
         }
@@ -72,11 +69,7 @@ contract Controller is ControllerAdmin {
     /**
      * @notice Gets the minter at address _controller.
      */
-    function getMinters(address _controller)
-        external
-        view
-        returns (address[] memory)
-    {
+    function getMinters(address _controller) external view returns (address[] memory) {
         if (controllers[_controller].length == 0) {
             revert Controller__ControllerNoMinters();
         }

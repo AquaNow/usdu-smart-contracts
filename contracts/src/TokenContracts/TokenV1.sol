@@ -152,7 +152,10 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
      * @param value     Allowance amount
      * @return True if successful
      */
-    function approve(address spender, uint256 value)
+    function approve(
+        address spender,
+        uint256 value
+    )
         external
         override
         whenNotPaused
@@ -187,7 +190,11 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
      * @param value Transfer amount
      * @return True if successful
      */
-    function transferFrom(address from, address to, uint256 value)
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    )
         external
         override
         whenNotPaused
@@ -208,7 +215,10 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
      * @param value Transfer amount
      * @return True if successful
      */
-    function transfer(address to, uint256 value)
+    function transfer(
+        address to,
+        uint256 value
+    )
         external
         override
         whenNotPaused
@@ -242,12 +252,10 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
      * @param _minterCap The minting allowance for the minter
      * @return True if the operation was successful.
      */
-    function configureMinter(address minter, uint256 _minterAllowedAmount)
-        external
-        whenNotPaused
-        onlyMasterMinter
-        returns (bool)
-    {
+    function configureMinter(
+        address minter,
+        uint256 _minterAllowedAmount
+    ) external whenNotPaused onlyMasterMinter returns (bool) {
         isMinter[minter] = true;
         minterAllowance[minter] = _minterAllowedAmount;
 
@@ -267,14 +275,12 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
     }
 
     /**
-    * @dev allows a minter to burn some of its own tokens
-    * Validates that caller is a minter and that sender is not blacklisted
-    * amount is less than or equal to the minter's account balance
-    * @param _amount uint256 the amount of tokens to be burned
-    */
-    function burn(
-        uint256 _amount
-    ) external whenNotPaused onlyMinter notBlacklisted(msg.sender) {
+     * @dev allows a minter to burn some of its own tokens
+     * Validates that caller is a minter and that sender is not blacklisted
+     * amount is less than or equal to the minter's account balance
+     * @param _amount uint256 the amount of tokens to be burned
+     */
+    function burn(uint256 _amount) external whenNotPaused onlyMinter notBlacklisted(msg.sender) {
         uint256 balance = balances[msg.sender];
         if (_amount <= 0) revert BurnAmountNotGreaterThanZero();
         if (balance < _amount) revert AmountExceedsBalance();
@@ -288,13 +294,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
     function mint(
         address _to,
         uint256 _amount
-    )
-        public
-        whenNotPaused
-        notBlacklisted(msg.sender)
-        notBlacklisted(_to)
-        returns (bool)
-    {
+    ) public whenNotPaused notBlacklisted(msg.sender) notBlacklisted(_to) returns (bool) {
         if (_to == address(0)) revert NoZeroAddress(_to);
         if (_amount <= 0) revert MintMustBeGreaterThanZero();
         if (!isMinter[_to]) revert UnconfiguredMinter();
@@ -309,28 +309,21 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
     }
 
     function updateMasterMinter(address _newMasterMinter) external onlyOwner {
-        if (_newMasterMinter == address(0))
-            revert NoZeroAddress(_newMasterMinter);
+        if (_newMasterMinter == address(0)) revert NoZeroAddress(_newMasterMinter);
         masterMinter = _newMasterMinter;
         emit MasterMinterChanged(masterMinter);
     }
 
     /**
-    * @notice Increase the allowance by a given increment
-    * @param spender   Spender's address
-    * @param increment Amount of increase in allowance
-    * @return True if successful
-    */
+     * @notice Increase the allowance by a given increment
+     * @param spender   Spender's address
+     * @param increment Amount of increase in allowance
+     * @return True if successful
+     */
     function increaseAllowance(
         address spender,
         uint256 increment
-    )
-        external
-        whenNotPaused
-        notBlacklisted(msg.sender)
-        notBlacklisted(spender)
-        returns (bool)
-    {
+    ) external whenNotPaused notBlacklisted(msg.sender) notBlacklisted(spender) returns (bool) {
         address owner = msg.sender;
         _approve(owner, spender, allowed[owner][spender] + increment);
 
@@ -338,21 +331,15 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
     }
 
     /**
-    * @notice Decrease the allowance by a given decrement
-    * @param spender   Spender's address
-    * @param decrement Amount of decrease in allowance
-    * @return True if successful
-    */
+     * @notice Decrease the allowance by a given decrement
+     * @param spender   Spender's address
+     * @param decrement Amount of decrease in allowance
+     * @return True if successful
+     */
     function decreaseAllowance(
         address spender,
         uint256 decrement
-    )
-        external
-        whenNotPaused
-        notBlacklisted(msg.sender)
-        notBlacklisted(spender)
-        returns (bool)
-    {
+    ) external whenNotPaused notBlacklisted(msg.sender) notBlacklisted(spender) returns (bool) {
         address owner = msg.sender;
         uint256 currentAllowance = allowed[owner][spender];
         if (currentAllowance < decrement) {

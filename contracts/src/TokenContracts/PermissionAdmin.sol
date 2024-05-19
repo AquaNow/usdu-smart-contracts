@@ -2,15 +2,14 @@
 
 pragma solidity ^0.8.9;
 
-import { Ownable } from "./Ownable.sol";
+import {Ownable} from "./Ownable.sol";
 
-/** 
-* @notice Base contract which allows owner to set an admin to select the pauser, 
-* blacklister, and rescuer. Only the contract owner can modify the admin.
-*/
+/**
+ * @notice Base contract which allows owner to set an admin to select the pauser,
+ * blacklister, and rescuer. Only the contract owner can modify the admin.
+ */
 
-abstract contract PermissionAdmin is Ownable{
-
+abstract contract PermissionAdmin is Ownable {
     address private _permissionAdmin;
 
     event PermissionAdminChanged(address indexed admin);
@@ -24,7 +23,7 @@ abstract contract PermissionAdmin is Ownable{
         _;
     }
 
-     /**
+    /**
      * @notice Returns current rescuer
      * @return permissionAdmin's address
      */
@@ -32,7 +31,7 @@ abstract contract PermissionAdmin is Ownable{
         return _permissionAdmin;
     }
 
-     /**
+    /**
      * @notice sets the current permission admin
      */
     function setPermissionAdmin(address _newAdmin) external onlyOwner {
@@ -40,5 +39,4 @@ abstract contract PermissionAdmin is Ownable{
         _permissionAdmin = _newAdmin;
         emit PermissionAdminChanged(_permissionAdmin);
     }
-
 }
