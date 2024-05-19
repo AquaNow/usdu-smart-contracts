@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.9;
 
-import "./MintController.sol";
+import {MintController} from "./MintController.sol";
 
 /**
  * @title MasterMinter
