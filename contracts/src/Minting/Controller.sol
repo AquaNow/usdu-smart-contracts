@@ -38,7 +38,8 @@ contract Controller is ControllerAdmin {
 
     /* Errors */
     error Controller__OnlyControllers();
-    error Controller__NoZeroAddress();
+    error Controller__ControllerAddressIsZero();
+    error Controller__MinterAddressIsZero();
     error Controller__MinterHasController();
     error Controller__ControllerNoMinters();
     error Controller__CallerNotController();
@@ -49,10 +50,10 @@ contract Controller is ControllerAdmin {
         address _minter
     ) external onlyControllerAdmin {
         if (_controller == address(0)) {
-            revert Controller__NoZeroAddress();
+            revert Controller__ControllerAddressIsZero();
         }
         if (_minter == address(0)) {
-            revert Controller__NoZeroAddress();
+            revert Controller__MinterAddressIsZero();
         }
         if (minterController[_minter] == address(0)) {
             minterController[_minter] = _controller;
@@ -85,7 +86,7 @@ contract Controller is ControllerAdmin {
      */
     function removeController(address _controller) external onlyControllerAdmin {
         if (_controller == address(0)) {
-            revert Controller__NoZeroAddress();
+            revert Controller__ControllerAddressIsZero();
         }
         if (controllers[_controller].length == 0) {
             revert Controller__ControllerHasNoMinters();
