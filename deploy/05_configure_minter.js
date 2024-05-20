@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 const { developmentChains, networkConfig } = require("../helper-hardhat-config");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deployer } = await getNamedAccounts();
+    const { deployer, minter } = await getNamedAccounts();
     const { get, log } = deployments;
     const chainId = network.config.chainId;
 
@@ -14,7 +14,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const masterMinter = await ethers.getContractAt("MasterMinter", masterMinterDeployment.address);
 
     const MINT_ALLOWANCE = "50000000000000";
-    const configureMinterTx = await masterMinter.configureMinter(deployer, MINT_ALLOWANCE);
+    const configureMinterTx = await masterMinter.configureMinter(minter, MINT_ALLOWANCE);
     await configureMinterTx.wait(waitBlockConfirmations);
     log(`Minter configured with allowance ${MINT_ALLOWANCE}.`);
 };
