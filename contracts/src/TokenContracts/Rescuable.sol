@@ -10,7 +10,7 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
 contract Rescuable is PermissionAdmin {
     using SafeERC20 for IERC20;
 
-    address private _rescuer;
+    address internal _rescuer;
 
     error Rescuable__CallerNotRescuer();
     error Rescuable__NoZeroAddress(address value);
