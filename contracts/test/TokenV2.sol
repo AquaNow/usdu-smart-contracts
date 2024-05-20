@@ -6,14 +6,14 @@ import {AbstractTokenV1} from "../src/TokenContracts/AbstractTokenV1.sol";
 import {Ownable} from "../src/TokenContracts/Ownable.sol";
 import {Pausable} from "../src/TokenContracts/Pausable.sol";
 import {Blacklistable} from "../src/TokenContracts/Blacklistable.sol";
+import { Rescuable } from "../src/TokenContracts/Rescuable.sol";
 import {TokenV1} from "../src/TokenContracts/TokenV1.sol";
-// import { Rescuable } from "./Rescuable.sol";
 /**
  * @title Token
  * @dev ERC20 Token backed by fiat reserves
  */
 
-contract TokenV2 is AbstractTokenV1, Ownable, Pausable, Blacklistable, TokenV1 {
+contract TokenV2 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable, TokenV1 {
     /**
      * @dev Returns the number of decimals used to get its user representation.
      */
