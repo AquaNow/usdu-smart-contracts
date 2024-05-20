@@ -6,12 +6,13 @@ import {AbstractTokenV1} from "./AbstractTokenV1.sol";
 import {Ownable} from "./Ownable.sol";
 import {Pausable} from "./Pausable.sol";
 import {Blacklistable} from "./Blacklistable.sol";
+import { Rescuable } from "./Rescuable.sol";
 
 /**
  * @title Token
  * @dev ERC20 Token backed by fiat reserves
  */
-contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable {
+contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
