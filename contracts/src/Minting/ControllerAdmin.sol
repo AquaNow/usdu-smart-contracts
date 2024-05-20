@@ -27,6 +27,7 @@ contract ControllerAdmin is Ownable {
     /* Errors */
     error ControllerAdmin__NoZeroAddress();
     error ControllerAdmin__CallerNotControllerAdmin();
+    error ControllerAdmin__MaxMintersCannotBeZero();
 
     function getControllerAdmin() external view returns (address) {
         return _controllerAdmin;
@@ -46,7 +47,7 @@ contract ControllerAdmin is Ownable {
 
     function _setMaxNumberOfMinters(uint256 _newMax) internal {
         if (_newMax == 0) {
-            revert ControllerAdmin__NoZeroAddress();
+            revert ControllerAdmin__MaxMintersCannotBeZero();
         }
         _maxNumOfMinters = _newMax;
     }
