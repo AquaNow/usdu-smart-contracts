@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: MIT
- 
 
 pragma solidity ^0.8.9;
 
-import { Ownable } from "./Ownable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { PermissionAdmin } from "./PermissionAdmin.sol";
+import {Ownable} from "./Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {PermissionAdmin} from "./PermissionAdmin.sol";
 
 contract Rescuable is PermissionAdmin {
     using SafeERC20 for IERC20;
 
     address private _rescuer;
+
+    error Rescuable__CallerNotRescuer();
+    error Rescuable__NoZeroAddress(address value);
 
     event RescuerChanged(address indexed newRescuer);
 
@@ -27,7 +29,7 @@ contract Rescuable is PermissionAdmin {
      * @notice Revert if called by any account other than the rescuer.
      */
     modifier onlyRescuer() {
-        require(msg.sender == _rescuer, "caller not rescuer");
+        if (msg.sender != _rescuer) revert Rescuable__CallerNotRescuer();
         _;
     }
 
@@ -50,10 +52,7 @@ contract Rescuable is PermissionAdmin {
      * @param newRescuer New rescuer's address
      */
     function updateRescuer(address newRescuer) external onlyPermissionAdmin {
-        require(
-            newRescuer != address(0),
-            "No zero addr"
-        );
+        if (newRescuer == address(0)) revert Rescuable__NoZeroAddress(newRescuer);
         _rescuer = newRescuer;
         emit RescuerChanged(newRescuer);
     }
