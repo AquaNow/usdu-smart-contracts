@@ -24,6 +24,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         owner2 = accounts[10];
         blacklistedUser = accounts[11];
         newOwner = accounts[12];
+        rescuer = accounts[13];
 
         const tokenv1Deployment = await deployments.get("TokenV1");
         tokenv1 = await ethers.getContractAt("TokenV1", tokenv1Deployment.address, owner);
@@ -52,7 +53,8 @@ const { developmentChains } = require("../helper-hardhat-config");
               6,
               masterMinter.address,
               pauser.address,
-              blacklister.address
+              blacklister.address,
+              rescuer.address
             )
           ).to.be.revertedWith(`Initializable: contract is already initialized`);
         });

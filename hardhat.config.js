@@ -73,6 +73,9 @@ module.exports = {
     pauser: {
       default: 4,
     },
+    rescuer: {
+      default: 5,
+    }
   },
   gasReporter: {
     enabled: REPORT_GAS,

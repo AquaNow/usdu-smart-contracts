@@ -6,7 +6,7 @@ import {AbstractTokenV1} from "./AbstractTokenV1.sol";
 import {Ownable} from "./Ownable.sol";
 import {Pausable} from "./Pausable.sol";
 import {Blacklistable} from "./Blacklistable.sol";
-import { Rescuable } from "./Rescuable.sol";
+import {Rescuable} from "./Rescuable.sol";
 
 /**
  * @title Token
@@ -71,7 +71,8 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         uint8 tokenDecimals,
         address newMasterMinter,
         address newPauser,
-        address newBlacklister
+        address newBlacklister,
+        address newRescuer
     ) public initializer {
         Ownable.initialize(msg.sender);
         Pausable.initPaused();
@@ -79,6 +80,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         if (newMasterMinter == address(0)) revert NoZeroAddress(newMasterMinter);
         if (newPauser == address(0)) revert NoZeroAddress(newPauser);
         if (newBlacklister == address(0)) revert NoZeroAddress(newBlacklister);
+        if (newRescuer == address(0)) revert Rescuable__NoZeroAddress(newRescuer);
 
         _name = tokenName;
         _symbol = tokenSymbol;
@@ -87,11 +89,13 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         masterMinter = newMasterMinter;
         _pauser = newPauser;
         _blacklister = newBlacklister;
+        _rescuer = newRescuer;
 
         emit NewMasterMinter(newMasterMinter);
         emit NewPauser(newPauser);
         emit NewBlacklister(newBlacklister);
         emit TokenDecimalsSet(tokenDecimals);
+        emit RescuerChanged(newRescuer);
     }
 
     /**

@@ -2,7 +2,7 @@ const { ethers, upgrades } = require("hardhat");
 const { developmentChains, networkConfig } = require("../helper-hardhat-config");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deployer, pauser, blacklister } = await getNamedAccounts();
+    const { deployer, pauser, blacklister, rescuer } = await getNamedAccounts();
     const { get, log, save } = deployments;
     const chainId = network.config.chainId;
 
@@ -21,7 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const TokenV1 = await ethers.getContractFactory("TokenV1");
     const tokenv1 = await upgrades.deployProxy(
         TokenV1,
-        [NAME, SYMBOL, CURRENCY, DECIMALS, MasterMinter.address, pauser, blacklister],
+        [NAME, SYMBOL, CURRENCY, DECIMALS, MasterMinter.address, pauser, blacklister, rescuer],
         {
             unsafeAllow: ['delegatecall'],
             unsafeAllowCustomTypes: true,

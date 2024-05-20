@@ -5,7 +5,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 !developmentChains.includes(network.name)
   ? describe.skip
   : describe("Integration test for minting and burning", function () {
-      let tokenv1, masterMinter, owner, permissionAdmin, controllerAdmin, blacklister, pauser, minter1;
+      let tokenv1, masterMinter, owner, permissionAdmin, controllerAdmin, blacklister, pauser, minter1, rescuer;
       const mintAmount = 5;
       const burnAmount = 4;
       const initialBalance = 20;
@@ -21,6 +21,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         blacklister = accounts[3];
         pauser = accounts[4];
         minter1 = accounts[5];
+        rescuer = accounts[6];
 
         const tokenv1Deployment = await deployments.get("TokenV1");
         tokenv1 = await ethers.getContractAt("TokenV1", tokenv1Deployment.address, owner);
@@ -46,7 +47,8 @@ const { developmentChains } = require("../helper-hardhat-config");
             6,
             masterMinter.address,
             pauser.address,
-            blacklister.address
+            blacklister.address,
+            rescuer.address
           )).to.be.revertedWith(`Initializable: contract is already initialized`);
         });
 
