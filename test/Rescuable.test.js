@@ -30,6 +30,11 @@ const { developmentChains } = require("../helper-hardhat-config");
       });
 
       describe("Rescuable Functionality", function () {
+        it("should set the rescuer properly", async () => {
+          const currentRescuer = await tokenv1.rescuer();
+          assert.equal(currentRescuer, rescuer.address);
+        });
+
         it("should allow rescuer to rescue ERC20 tokens", async () => {
           // Mint tokens to contract itself to simulate stuck tokens
           await tokenv1.connect(minter).mint(tokenv1.address, rescueAmount);
