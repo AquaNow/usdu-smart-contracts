@@ -41,7 +41,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 
         it("should allow blacklister to blacklist a user", async () => {
           await tokenv1.connect(blacklister).blacklist(blacklistedUser.address);
-          const isBlacklisted = await tokenv1.blacklisted(blacklistedUser.address);
+          const isBlacklisted = await tokenv1.isBlacklisted(blacklistedUser.address);
           console.log("Blacklisted User:", blacklistedUser.address, "isBlacklisted:", isBlacklisted);
           assert.equal(isBlacklisted, true);
         });
@@ -49,7 +49,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         it("should allow blacklister to unblacklist a user", async () => {
           await tokenv1.connect(blacklister).blacklist(blacklistedUser.address);
           await tokenv1.connect(blacklister).unBlacklist(blacklistedUser.address);
-          const isBlacklisted = await tokenv1.blacklisted(blacklistedUser.address);
+          const isBlacklisted = await tokenv1.isBlacklisted(blacklistedUser.address);
           console.log("Unblacklisted User:", blacklistedUser.address, "isBlacklisted:", isBlacklisted);
           assert.equal(isBlacklisted, false);
         });

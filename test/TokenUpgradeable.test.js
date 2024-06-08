@@ -52,7 +52,7 @@ const opts = {
           const decimals = await upgraded.decimals();
           const masterMinter = await upgraded.masterMinter();
           const paused = await upgraded.paused();
-          const blacklisted = await upgraded.blacklisted("0x2B51E57004572e9A13f092EC87e201bFEe2F7fe0");
+          const blacklisted = await upgraded.isBlacklisted("0x2B51E57004572e9A13f092EC87e201bFEe2F7fe0");
 
           expect(name.toString()).to.equal("USD Universal");
           expect(symbol.toString()).to.equal("USDU");

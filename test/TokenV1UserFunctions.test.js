@@ -106,7 +106,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 
         it("should revert when approving a blacklisted address", async () => {
           await tokenv1.connect(blacklister).blacklist(blacklistedUser.address);
-          expect(await tokenv1.blacklisted(blacklistedUser.address)).to.equal(true);
+          expect(await tokenv1.isBlacklisted(blacklistedUser.address)).to.equal(true);
           await expect(tokenv1.connect(minter1).approve(blacklistedUser.address, 1)).to.be.revertedWith("Blacklistable__AccountBlacklisted");
         });
 
@@ -138,7 +138,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 
         it("should revert transfer to zero address, blacklisted address, and invalid amount", async () => {
           await tokenv1.connect(blacklister).blacklist(blacklistedUser.address);
-          expect(await tokenv1.blacklisted(blacklistedUser.address)).to.equal(true);
+          expect(await tokenv1.isBlacklisted(blacklistedUser.address)).to.equal(true);
           
           const zero_address = ethers.utils.getAddress("0x0000000000000000000000000000000000000000");
           await expect(tokenv1.connect(random3).transfer(blacklistedUser.address, 2)).to.be.revertedWith("Blacklistable__AccountBlacklisted");
