@@ -75,9 +75,20 @@ const { developmentChains } = require("../helper-hardhat-config");
         });
 
         it("should allow pauser to unpause the contract", async () => {
-          const paused = await tokenv1.paused();
+          await tokenv1.connect(pauser).pause();
+          let paused = await tokenv1.paused();
+          console.log("Paused:", paused);
+          assert.equal(paused, true);
+
+          const tx = await tokenv1.connect(pauser).unpause();
+          paused = await tokenv1.paused();
           console.log("Unpaused:", paused);
           assert.equal(paused, false);
+
+          // Check if the Unpaused event is emitted
+          await expect(tx)
+          .to.emit(tokenv1, 'Unpaused')
+          .withArgs();
         });
       });
     });
