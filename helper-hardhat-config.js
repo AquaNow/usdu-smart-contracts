@@ -2,10 +2,12 @@ const networkConfig = {
     31337: {
         name: "localhost",
         confirmations: 1,
+        minterAllowance: "50000000000000"
     },
     11155111: {
         name: "sepolia",
         confirmations: 2,
+        minterAllowance: "50000000000000"
     }
 }
 
