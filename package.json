@@ -9,8 +9,7 @@
         "lint": "solhint 'contracts/**/*.sol'",
         "lint:fix": "solhint 'contracts/**/*.sol' --fix",
         "format": "prettier --write 'contracts/**/*.sol'",
-        "deploy:testnet": "npx hardhat run --network sepolia scripts/deploy.js",
-        "deploy:mainnet": "npx hardhat run --network mainnet scripts/deploy.js"
+        "slither": "slither . --solc-remaps '@openzeppelin=node_modules/@openzeppelin' --exclude naming-convention,external-function,low-level-calls"
     },
     "keywords": [],
     "author": "",
