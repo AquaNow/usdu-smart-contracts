@@ -1,22 +1,31 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.9;
 
 import {Ownable} from "./Ownable.sol";
 
 /**
- * @notice Base contract which allows owner to set an admin to select the pauser,
- * blacklister, and rescuer. Only the contract owner can modify the admin.
+ * @title PermissionAdmin
+ * @notice Base contract which allows the owner to set an admin with the ability to select the pauser, blacklister, and rescuer.
+ * @dev Only the contract owner can modify the admin. The admin has special permissions defined by this contract.
  */
-
 abstract contract PermissionAdmin is Ownable {
     address private _permissionAdmin;
 
+    /// @notice Emitted when the permission admin is changed.
+    /// @param admin The new permission admin.
     event PermissionAdminChanged(address indexed admin);
 
+    /// @notice Error thrown when the caller is not the permission admin.
     error PermissionAdmin__CallerNotPermissionAdmin();
+
+    /// @notice Error thrown when trying to set the permission admin to the zero address.
+    /// @param account The address that was attempted to be set as the permission admin.
     error PermissionAdmin__NoZeroAddress(address account);
     
+    /**
+     * @dev Modifier to make a function callable only by the permission admin.
+     */
     modifier onlyPermissionAdmin() {
         if (msg.sender != _permissionAdmin) {
             revert PermissionAdmin__CallerNotPermissionAdmin();
@@ -25,15 +34,17 @@ abstract contract PermissionAdmin is Ownable {
     }
 
     /**
-     * @notice Returns current rescuer
-     * @return permissionAdmin's address
+     * @notice Returns the current permission admin.
+     * @return The address of the current permission admin.
      */
     function getPermissionAdmin() external view returns (address) {
         return _permissionAdmin;
     }
 
     /**
-     * @notice sets the current permission admin
+     * @notice Sets a new permission admin.
+     * @param _newAdmin The address of the new permission admin.
+     * @dev Only the contract owner can call this function. The new admin address cannot be the zero address.
      */
     function setPermissionAdmin(address _newAdmin) external onlyOwner {
         if (_newAdmin == address(0)) revert PermissionAdmin__NoZeroAddress(_newAdmin);

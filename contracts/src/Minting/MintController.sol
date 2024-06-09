@@ -6,29 +6,36 @@ import {Controller} from "./Controller.sol";
 import {MinterManagementInterface} from "./MinterManagerInterface.sol";
 import {Ownable} from "../TokenContracts/Ownable.sol";
 
+/**
+ * @title MintController
+ * @notice This contract manages the minting process by interfacing with the MinterManagementInterface contract.
+ * It allows configuration, increment, and decrement of minter allowances and removes minters.
+ * @dev Inherits from the Controller contract.
+ */
 contract MintController is Controller {
-    /*
-     * @title MinterManagementInterface
-     * @notice MintController calls the minterManager to execute/record minter
-     * management tasks, as well as to query the status of a minter address.
-     */
+    /// @notice The interface to manage minters.
     MinterManagementInterface internal minterManager;
+    /// @notice A mapping from minter addresses to their allowances.
     mapping(address => uint256) internal minterAllowance;
 
+    /// @notice Event emitted when the minter manager is set.
     event MinterManagerSet(address indexed _oldMinterManager, address indexed _newMinterManager);
+    /// @notice Event emitted when a minter is configured.
     event MinterConfigured(
         address indexed _msgSender,
         address indexed _minter,
         uint256 _allowance
     );
+    /// @notice Event emitted when a minter is removed.
     event MinterRemoved(address indexed _msgSender, address indexed _minter);
+    /// @notice Event emitted when a minter's allowance is incremented.
     event MinterAllowanceIncremented(
         address indexed _msgSender,
         address indexed _minter,
         uint256 _increment,
         uint256 _newAllowance
     );
-
+    /// @notice Event emitted when a minter's allowance is decremented.
     event MinterAllowanceDecremented(
         address indexed msgSender,
         address indexed minter,
@@ -36,7 +43,7 @@ contract MintController is Controller {
         uint256 newAllowance
     );
 
-    /* Errors */
+    // Error messages for various failure cases.
     error MintController__NoMinters();
     error MintController__NoZeroAddress(address account);
     error MintController__ExceedMaxMinters();
@@ -46,9 +53,10 @@ contract MintController is Controller {
     error MintController__AllowanceTooSmall();
     error MintController__NotMinterController();
 
-    /*
-     * @notice Initializes the minterManager.
-     * @param _minterManager The address of the minterManager contract.
+    /**
+     * @notice Initializes the MintController with a minter manager and maximum number of minters.
+     * @param _minterManager The address of the minter manager contract.
+     * @param _initMaxNumOfMinters The initial maximum number of minters.
      */
     function initializeMintController(
         address _minterManager,
@@ -59,8 +67,9 @@ contract MintController is Controller {
         minterManager = MinterManagementInterface(_minterManager);
     }
 
-    /*
-     * @notice gets the minterManager
+    /**
+     * @notice Returns the address of the minter manager.
+     * @return The address of the minter manager contract.
      */
     function getMinterManager() external view returns (MinterManagementInterface) {
         return minterManager;
@@ -69,8 +78,8 @@ contract MintController is Controller {
     // onlyOwner functions
 
     /**
-     * @notice Sets the minterManager.
-     * @param _newMinterManager The address of the new minterManager contract.
+     * @notice Sets a new minter manager.
+     * @param _newMinterManager The address of the new minter manager contract.
      */
     function setMinterManager(address _newMinterManager) external onlyOwner {
         emit MinterManagerSet(address(minterManager), _newMinterManager);
@@ -80,7 +89,9 @@ contract MintController is Controller {
     // onlyController functions
 
     /**
-     * @notice Removes the controller's own minter.
+     * @notice Removes a minter controlled by the caller.
+     * @param _minter The address of the minter to remove.
+     * @return A boolean indicating whether the minter was successfully removed.
      */
     function removeMinter(address _minter) external onlyController returns (bool) {
         uint256 len = controllers[msg.sender].length;
@@ -107,8 +118,10 @@ contract MintController is Controller {
     }
 
     /**
-     * @notice Enables the minter and sets its allowance.
-     * @param _newAllowance New allowance to be set for minter.
+     * @notice Configures a new minter with a specified allowance.
+     * @param _minter The address of the new minter.
+     * @param _newAllowance The allowance to set for the new minter.
+     * @return A boolean indicating whether the minter was successfully configured.
      */
     function configureMinter(
         address _minter,
@@ -117,7 +130,6 @@ contract MintController is Controller {
         if (_minter == address(0)) revert MintController__NoZeroAddress(_minter);
         if (controllers[msg.sender].length > _maxNumOfMinters)
             revert MintController__ExceedMaxMinters();
-        //total minted vs allowance
         if (minterController[_minter] == address(0)) {
             minterController[_minter] = msg.sender;
             if (controllers[msg.sender].length + 1 > _maxNumOfMinters)
@@ -133,10 +145,10 @@ contract MintController is Controller {
     }
 
     /**
-     * @notice Increases the minter's allowance if and only if the minter is an
-     * active minter.
-     * @dev An minter is considered active if minterManager.isMinter(minter)
-     * returns true.
+     * @notice Increases the allowance of an active minter.
+     * @param _allowanceIncrement The amount to increase the allowance by.
+     * @param _minter The address of the minter.
+     * @return A boolean indicating whether the allowance was successfully incremented.
      */
     function incrementMinterAllowance(
         uint256 _allowanceIncrement,
@@ -154,10 +166,10 @@ contract MintController is Controller {
     }
 
     /**
-     * @notice decreases the minter allowance if and only if the minter is
-     * currently active. The controller can safely send a signed
-     * decrementMinterAllowance() transaction to a minter and not worry
-     * about it being used to undo a removeMinter() transaction.
+     * @notice Decreases the allowance of an active minter.
+     * @param _allowanceDecrement The amount to decrease the allowance by.
+     * @param _minter The address of the minter.
+     * @return A boolean indicating whether the allowance was successfully decremented.
      */
     function decrementMinterAllowance(
         uint256 _allowanceDecrement,
@@ -184,13 +196,11 @@ contract MintController is Controller {
         return _setMinterAllowance(_minter, newAllowance);
     }
 
-    // Internal functions
-
     /**
-     * @notice Uses the MinterManagementInterface to enable the minter and
-     * set its allowance.
-     * @param _minter Minter to set new allowance of.
-     * @param _newAllowance New allowance to be set for minter.
+     * @notice Sets the allowance for a minter using the MinterManagementInterface.
+     * @param _minter The address of the minter.
+     * @param _newAllowance The new allowance to be set.
+     * @return A boolean indicating whether the allowance was successfully set.
      */
     function _setMinterAllowance(address _minter, uint256 _newAllowance) internal returns (bool) {
         return minterManager.configureMinter(_minter, _newAllowance);
