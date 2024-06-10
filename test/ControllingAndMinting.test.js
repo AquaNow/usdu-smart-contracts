@@ -85,6 +85,12 @@ const { developmentChains } = require("../helper-hardhat-config");
           await expect(masterMinter.connect(controller1).configureMinter(zero_address, 20)).to.be.revertedWith(`MintController__NoZeroAddress`);
         });
 
+        it("should revert when configuring a minter that already has a different controller", async () => {
+          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
+          await masterMinter.connect(controllerAdmin).configureController(controller2.address, minter2.address);
+          await expect(masterMinter.connect(controller1).configureMinter(minter2.address, 20)).to.be.revertedWith(`MintController__MinterHasController`);
+        });
+
         it("should revert when configureMinter is called by non-controller", async () => {
           await expect(masterMinter.connect(random4).configureMinter(minter2.address, 30)).to.be.revertedWith(`Controller__OnlyControllers`);
         });

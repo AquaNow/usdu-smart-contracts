@@ -128,20 +128,27 @@ contract MintController is Controller {
         uint256 _newAllowance
     ) external onlyController returns (bool) {
         if (_minter == address(0)) revert MintController__NoZeroAddress(_minter);
-        if (controllers[msg.sender].length > _maxNumOfMinters)
+        if (controllers[msg.sender].length >= _maxNumOfMinters) {
             revert MintController__ExceedMaxMinters();
-        if (minterController[_minter] == address(0)) {
+        }
+        // Check if the minter already has a controller
+        if (minterController[_minter] != address(0)) {
+            if (minterController[_minter] != msg.sender) {
+                revert MintController__MinterHasController();
+            }
+        } else {
+            // Assign the minter to the caller and add to the controllers list
             minterController[_minter] = msg.sender;
-            if (controllers[msg.sender].length + 1 > _maxNumOfMinters)
-                revert MintController__ExceedMaxMinters();
-
             controllers[msg.sender].push(_minter);
         }
-        if (minterController[_minter] != msg.sender) revert MintController__MinterHasController();
+        // Update minter allowance
         isMinter[_minter] = true;
         minterAllowance[_minter] = _newAllowance;
+
         emit MinterConfigured(msg.sender, _minter, _newAllowance);
+
         return _setMinterAllowance(_minter, _newAllowance);
+
     }
 
     /**
