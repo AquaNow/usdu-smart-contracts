@@ -34,7 +34,7 @@ async function main() {
     const TokenV1 = await ethers.getContractFactory("TokenV1");
     const tokenv1 = await upgrades.deployProxy(
         TokenV1,
-        [NAME, SYMBOL, CURRENCY, DECIMALS, masterMinter.address, deployer.address, deployer.address],
+        [NAME, SYMBOL, CURRENCY, DECIMALS, masterMinter.address, deployer.address, deployer.address, deployer.address],
         {
             unsafeAllow: ['delegatecall'],
             unsafeAllowCustomTypes: true,
