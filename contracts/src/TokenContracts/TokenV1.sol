@@ -197,7 +197,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         if (newMasterMinter == address(0)) revert NoZeroAddress(newMasterMinter);
         if (newPauser == address(0)) revert NoZeroAddress(newPauser);
         if (newBlacklister == address(0)) revert NoZeroAddress(newBlacklister);
-        if (newRescuer == address(0)) revert Rescuable__NoZeroAddress(newRescuer);
+        if (newRescuer == address(0)) revert NoZeroAddress(newRescuer);
 
         _name = tokenName;
         _symbol = tokenSymbol;
