@@ -39,6 +39,11 @@ const { developmentChains } = require("../helper-hardhat-config");
           await expect(tokenv1.connect(blacklister).blacklist(zeroAddress)).to.be.revertedWith("Blacklistable__NoZeroAddress");
         });
 
+        it("should revert when blacklister tries to blacklist an already blacklisted user", async () => {
+          await tokenv1.connect(blacklister).blacklist(blacklistedUser.address);
+          await expect(tokenv1.connect(blacklister).blacklist(blacklistedUser.address)).to.be.revertedWith(`Blacklistable__AlreadyBlacklisted`);
+        });
+
         it("should allow blacklister to blacklist a user", async () => {
           await tokenv1.connect(blacklister).blacklist(blacklistedUser.address);
           const isBlacklisted = await tokenv1.isBlacklisted(blacklistedUser.address);

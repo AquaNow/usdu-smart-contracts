@@ -104,6 +104,16 @@ const { developmentChains } = require("../helper-hardhat-config");
       });
 
       describe("Token Transfers", function () {
+        it("should revert when minting is done for zero address", async () => {
+          const zeroAddress = ethers.constants.AddressZero;
+          await expect(tokenv1.connect(minter1).mint(zeroAddress, 1000)).to.be.revertedWith(`NoZeroAddress`);
+        });
+
+        it("should revert when minting amount is less than or equal zero", async () => {
+          const zeroAddress = ethers.constants.AddressZero;
+          await expect(tokenv1.connect(minter1).mint(minter1.address, 0)).to.be.revertedWith(`MintMustBeGreaterThanZero`);
+        });
+
         it("should allow transfer from minter to a random user", async () => {
           await tokenv1.connect(minter1).mint(minter1.address, 1000);
           await tokenv1.connect(minter1).transfer(random4.address, 1);
@@ -112,6 +122,11 @@ const { developmentChains } = require("../helper-hardhat-config");
 
         it("should not revert when approving self", async () => {
           await expect(tokenv1.connect(minter1).approve(minter1.address, 2)).to.not.be.revertedWith(`msg.sender not spender`);
+        });
+
+        it("should revert when approving a zero address", async () => {
+          const zeroAddress = ethers.constants.AddressZero;
+          await expect(tokenv1.connect(minter1).approve(zeroAddress, 1)).to.be.revertedWith("NoZeroAddress");
         });
 
         it("should revert when approving a blacklisted address", async () => {

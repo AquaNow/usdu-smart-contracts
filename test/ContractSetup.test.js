@@ -137,7 +137,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         it("should revert when updating pauser/blacklister with zero address", async () => {
           const zeroAddress = ethers.constants.AddressZero;
           await expect(tokenv1.connect(owner).updatePauser(zeroAddress)).to.be.revertedWith(`Pausable__NoZeroAddress`);
-          await expect(tokenv1.connect(owner).updateBlacklister(zeroAddress)).to.be.revertedWith("Blacklistable__NoZeroAddress");
+          await expect(tokenv1.connect(owner).updateBlacklister(zeroAddress)). to.be.revertedWith("Blacklistable__NoZeroAddress");
         });
 
         it("should allow correct pauser and blacklister change by permissionAdmin", async () => {
@@ -147,4 +147,81 @@ const { developmentChains } = require("../helper-hardhat-config");
           assert.equal(await tokenv1.getBlacklister(), blacklister2.address);
         });
       });
-    });
+
+      describe("Manual Contract Setup", function () {
+        beforeEach(async () => {
+          const accounts = await ethers.getSigners();
+          owner = accounts[0];
+          permissionAdmin = accounts[1];
+          controllerAdmin = accounts[2];
+          blacklister = accounts[3];
+          pauser = accounts[4];
+          signer1 = accounts[5];
+          signer2 = accounts[6];
+          pauser2 = accounts[7];
+          blacklister2 = accounts[8];
+          masterMinter2 = accounts[9];
+          owner2 = accounts[10];
+          blacklistedUser = accounts[11];
+          newOwner = accounts[12];
+          rescuer = accounts[13];
+        });
+
+        it("should revert when initialize Token is passed with zero address", async () => {
+          const zeroAddress = ethers.constants.AddressZero;
+
+          const MasterMinter = await ethers.getContractFactory("MasterMinter");
+          masterMinter = await MasterMinter.deploy();
+          await masterMinter.deployed();
+
+          const TokenV1 = await ethers.getContractFactory("TokenV1");
+          tokenv1 = await TokenV1.deploy();
+          await tokenv1.deployed();
+
+          // Initialize TokenV1 manually
+          await expect(tokenv1.initializeToken(
+            "USD Universal",
+            "USDU",
+            "USD",
+            6,
+            zeroAddress,
+            pauser.address,
+            blacklister.address,
+            rescuer.address
+          )).to.be.revertedWith(`NoZeroAddress`)
+
+          await expect(tokenv1.initializeToken(
+            "USD Universal",
+            "USDU",
+            "USD",
+            6,
+            masterMinter.address,
+            zeroAddress,
+            blacklister.address,
+            rescuer.address
+          )).to.be.revertedWith(`NoZeroAddress`)
+
+          await expect(tokenv1.initializeToken(
+            "USD Universal",
+            "USDU",
+            "USD",
+            6,
+            masterMinter.address,
+            pauser.address,
+            zeroAddress,
+            rescuer.address
+          )).to.be.revertedWith(`NoZeroAddress`)
+
+          await expect(tokenv1.initializeToken(
+            "USD Universal",
+            "USDU",
+            "USD",
+            6,
+            masterMinter.address,
+            pauser.address,
+            blacklister.address,
+            zeroAddress,
+          )).to.be.revertedWith(`NoZeroAddress`)
+        })
+    })
+  })

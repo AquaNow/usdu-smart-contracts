@@ -177,6 +177,22 @@ const { developmentChains } = require("../helper-hardhat-config");
           assert.equal(await tokenv1.totalSupply(), 2);
         });
 
+        it("should revert when increment allowance is less than equal to 0", async () => {
+          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
+          await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
+          const tx = await tokenv1.connect(minter1).mint(minter1.address, 4);
+          await tx.wait();
+          await expect(masterMinter.connect(controller1).incrementMinterAllowance(0, minter1.address)).to.be.revertedWith(`MintController__IncrementTooSmall`);
+        });
+
+        it("should revert when address is not a minter when incrementing allowance", async () => {
+          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
+          await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
+          const tx = await tokenv1.connect(minter1).mint(minter1.address, 4);
+          await tx.wait();
+          await expect(masterMinter.connect(controller1).incrementMinterAllowance(4, random4.address)).to.be.revertedWith(`MintController__OnlyForMinterAllowance`);
+        });
+
         it("should increment minter allowance", async () => {
           await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
           await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
@@ -184,6 +200,14 @@ const { developmentChains } = require("../helper-hardhat-config");
           await tx.wait();
           await masterMinter.connect(controller1).incrementMinterAllowance(5, minter1.address);
           assert.equal(await tokenv1.minterAllowance(minter1.address), 21);
+        });
+
+        it("should revert when decrement allowance is too small", async () => {
+          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
+          await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
+          const tx = await tokenv1.connect(minter1).mint(minter1.address, 9);
+          await tx.wait();
+          await expect(masterMinter.connect(controller1).decrementMinterAllowance(0, minter1.address)).to.be.revertedWith(`MintController__AllowanceTooSmall`);
         });
 
         it("should decrement minter allowance", async () => {
