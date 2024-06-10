@@ -35,7 +35,7 @@ npm install
 Use Hardhat to compile the Solidity smart contracts:
 
 ```bash
-npx hardhat compile
+npm run compile
 ```
 
 ### 4. Run Tests
@@ -43,7 +43,7 @@ npx hardhat compile
 Execute the test suite to ensure everything is working as expected:
 
 ```bash
-npx hardhat test
+npm run test
 ```
 
 ### 5. Lint the Code
@@ -60,6 +60,14 @@ Ensure your code follows the coding standards by running Prettier:
 
 ```bash
 npm run format
+```
+
+### 7. Code coverage
+
+Test the code coverage:
+
+```bash
+npm run coverage
 ```
 
 ## Deployment
@@ -98,9 +106,26 @@ DEPLOY_METHOD=privatekey
 POLYGONSCAN_API_KEY=your-polygonscan-api-key
 ```
 
-### Deployment Command
+### Prerequisites for Deployment
 
-To deploy the contracts, run the following command with the appropriate network flag:
+Before proceeding with the deployment, make sure to configure your environment properly:
+1. **Set Deployment Method**: In your `.env` file, specify the deployment method by setting `DEPLOY_METHOD=fireblocks`.
+2. **Configure Contract Parameters**: Ensure that all necessary parameters for your smart contract are correctly configured in your deployment script or environment file. These parameters include:
+   - `NAME`: The name of the token.
+   - `SYMBOL`: The symbol of the token.
+   - `CURRENCY`: The currency type.
+   - `DECIMALS`: The number of decimals the token uses.
+   - `MAX_NUM_MINTERS`: The maximum number of minters allowed.
+3. **Set Role Addresses**: Assign the addresses for the following roles:
+   - `MasterMinter`: Contract address of the Master Minter.
+   - `Pauser`: Address that will have pausing capabilities.
+   - `Blacklister`: Address that can blacklist other addresses.
+   - `Rescuer`: Address that can rescue tokens.
+   
+Ensure that all the above details are properly set in the `scripts/deploy.js` scripts or passed as parameters where applicable.
+
+### Deployment Command
+With the prerequisites set, you can deploy your contracts to the desired network. Use the following command, replacing `<network-name>` with the name of the network you want to deploy to (e.g., `sepolia`, `mainnet`, etc.):
 
 ```bash
 npx hardhat deploy --network <network-name>
