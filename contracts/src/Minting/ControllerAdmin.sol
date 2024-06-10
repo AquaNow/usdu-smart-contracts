@@ -22,9 +22,6 @@ contract ControllerAdmin is Ownable {
 
     /// @notice Modifier to check if the caller is the controller admin.
     modifier onlyControllerAdmin() {
-        if (msg.sender == address(0)) {
-            revert ControllerAdmin__NoZeroAddress();
-        }
         if (msg.sender != _controllerAdmin) {
             revert ControllerAdmin__CallerNotControllerAdmin();
         }
