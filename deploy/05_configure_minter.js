@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { developmentChains, networkConfig } = require("../helper-hardhat-config");
+const { developmentChains, networkConfig, VERIFICATION_BLOCK_CONFIRMATIONS } = require("../helper-hardhat-config");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer, minter } = await getNamedAccounts();
@@ -8,7 +8,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     const waitBlockConfirmations = developmentChains.includes(network.name)
         ? networkConfig[chainId].confirmations || 1
-        : networkConfig.VERIFICATION_BLOCK_CONFIRMATIONS;
+        : VERIFICATION_BLOCK_CONFIRMATIONS;
 
     const masterMinterDeployment = await get("MasterMinter");
     const masterMinter = await ethers.getContractAt("MasterMinter", masterMinterDeployment.address);
