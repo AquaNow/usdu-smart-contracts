@@ -118,7 +118,7 @@ contract MintController is Controller {
     }
 
     /**
-     * @notice Configures a new minter with a specified allowance.
+     * @notice Configures a minter with a specified allowance. If the minter is new, assigns it to the caller and adds it to the caller's minter list.
      * @param _minter The address of the new minter.
      * @param _newAllowance The allowance to set for the new minter.
      * @return A boolean indicating whether the minter was successfully configured.
@@ -128,27 +128,18 @@ contract MintController is Controller {
         uint256 _newAllowance
     ) external onlyController returns (bool) {
         if (_minter == address(0)) revert MintController__NoZeroAddress(_minter);
-        if (controllers[msg.sender].length >= _maxNumOfMinters) {
-            revert MintController__ExceedMaxMinters();
-        }
-        // Check if the minter already has a controller
-        if (minterController[_minter] != address(0)) {
-            if (minterController[_minter] != msg.sender) {
-                revert MintController__MinterHasController();
-            }
-        } else {
-            // Assign the minter to the caller and add to the controllers list
+        if (minterController[_minter] == address(0)) {
             minterController[_minter] = msg.sender;
+            if (controllers[msg.sender].length + 1 > _maxNumOfMinters)
+                revert MintController__ExceedMaxMinters();
+
             controllers[msg.sender].push(_minter);
         }
-        // Update minter allowance
+        if (minterController[_minter] != msg.sender) revert MintController__MinterHasController();
         isMinter[_minter] = true;
         minterAllowance[_minter] = _newAllowance;
-
         emit MinterConfigured(msg.sender, _minter, _newAllowance);
-
         return _setMinterAllowance(_minter, _newAllowance);
-
     }
 
     /**
