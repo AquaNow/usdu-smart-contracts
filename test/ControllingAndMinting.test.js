@@ -185,12 +185,12 @@ const { developmentChains } = require("../helper-hardhat-config");
           await expect(masterMinter.connect(controller1).incrementMinterAllowance(0, minter1.address)).to.be.revertedWith(`MintController__IncrementTooSmall`);
         });
 
-        it("should revert when address is not a minter when incrementing allowance", async () => {
+        it("should revert when the minter address does not belong to the caller controller when incrementing allowance", async () => {
           await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
           await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
           const tx = await tokenv1.connect(minter1).mint(minter1.address, 4);
           await tx.wait();
-          await expect(masterMinter.connect(controller1).incrementMinterAllowance(4, random4.address)).to.be.revertedWith(`MintController__OnlyForMinterAllowance`);
+          await expect(masterMinter.connect(controller1).incrementMinterAllowance(4, random4.address)).to.be.revertedWith(`MintController__NotMinterController`);
         });
 
         it("should increment minter allowance", async () => {
@@ -208,6 +208,14 @@ const { developmentChains } = require("../helper-hardhat-config");
           const tx = await tokenv1.connect(minter1).mint(minter1.address, 9);
           await tx.wait();
           await expect(masterMinter.connect(controller1).decrementMinterAllowance(0, minter1.address)).to.be.revertedWith(`MintController__AllowanceTooSmall`);
+        });
+
+        it("should revert when the minter address does not belong to the caller controller when decrementing allowance", async () => {
+          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
+          await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
+          const tx = await tokenv1.connect(minter1).mint(minter1.address, 4);
+          await tx.wait();
+          await expect(masterMinter.connect(controller1).decrementMinterAllowance(2, random4.address)).to.be.revertedWith(`MintController__NotMinterController`);
         });
 
         it("should decrement minter allowance", async () => {

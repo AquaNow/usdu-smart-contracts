@@ -153,7 +153,7 @@ contract MintController is Controller {
         address _minter
     ) external onlyController returns (bool) {
         if (_allowanceIncrement <= 0) revert MintController__IncrementTooSmall();
-        if (!minterManager.isMinter(_minter)) revert MintController__OnlyForMinterAllowance();
+        if (minterController[_minter] != msg.sender) revert MintController__NotMinterController();
 
         uint256 currentAllowance = minterManager.getMinterAllowance(_minter);
         uint256 newAllowance = currentAllowance + _allowanceIncrement;
@@ -175,7 +175,6 @@ contract MintController is Controller {
     ) external onlyController returns (bool) {
         if (_allowanceDecrement <= 0) revert MintController__AllowanceTooSmall();
         if (minterController[_minter] != msg.sender) revert MintController__NotMinterController();
-        if (!minterManager.isMinter(_minter)) revert MintController__OnlyForMinterAllowance();
 
         uint256 currentAllowance = minterManager.getMinterAllowance(_minter);
 
