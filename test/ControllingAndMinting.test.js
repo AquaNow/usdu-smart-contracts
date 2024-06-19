@@ -264,12 +264,6 @@ const { developmentChains } = require("../helper-hardhat-config");
           await expect(masterMinter.connect(controller1).removeMinter(random4.address)).to.be.revertedWith(`Controller__OnlyControllers`);
         });
 
-        it("should revert when removing a controller without any minter", async () => {
-          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
-          await masterMinter.connect(controller1).removeMinter(minter1.address);
-          await expect(masterMinter.connect(controllerAdmin).removeController(controller1.address)).to.be.revertedWith(`Controller__ControllerHasNoMinters`);
-        });
-
         it("should get a mint list", async () => {
           await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
           const memoryList = await masterMinter.connect(controller1).getMinters(controller1.address);

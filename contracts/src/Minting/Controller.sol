@@ -48,7 +48,6 @@ contract Controller is ControllerAdmin {
     error Controller__MinterHasController();
     error Controller__ControllerNoMinters();
     error Controller__CallerNotController();
-    error Controller__ControllerHasNoMinters();
 
     /**
      * @notice Configures a controller with a minter.
@@ -99,9 +98,6 @@ contract Controller is ControllerAdmin {
     function removeController(address _controller) external onlyControllerAdmin {
         if (_controller == address(0)) {
             revert Controller__ControllerAddressIsZero();
-        }
-        if (controllers[_controller].length == 0) {
-            revert Controller__ControllerHasNoMinters();
         }
         isController[_controller] = false;
         delete controllers[_controller];
