@@ -21,8 +21,6 @@ contract Controller is ControllerAdmin {
     mapping(address => address) public minterController;
     /// @notice Mapping to check if an address is a controller.
     mapping(address => bool) public isController;
-    /// @notice Mapping to check if an address is a minter.
-    mapping(address => bool) public isMinter;
 
     /// @notice Event emitted when a controller is configured.
     event ControllerConfigured(address indexed _controller, address indexed _minter);
@@ -71,7 +69,6 @@ contract Controller is ControllerAdmin {
             revert Controller__MinterHasController();
         }
         controllers[_controller].push(_minter);
-        isMinter[_minter] = true;
         isController[_controller] = true;
         emit ControllerConfigured(_controller, _minter);
     }
@@ -102,5 +99,14 @@ contract Controller is ControllerAdmin {
         isController[_controller] = false;
         delete controllers[_controller];
         emit ControllerRemoved(_controller);
+    }
+
+    /**
+     * @notice Checks if an address is a minter.
+     * @param _minter The address to check.
+     * @return True if the address is a minter, false otherwise.
+     */
+    function isMinter(address _minter) external view returns (bool) {
+        return minterController[_minter] != address(0);
     }
 }

@@ -102,7 +102,6 @@ contract MintController is Controller {
             if (controllers[msg.sender][i] == _minter) {
                 minterController[_minter] = address(0);
                 controllers[msg.sender][i] = controllers[msg.sender][len - 1];
-                isMinter[_minter] = false;
                 controllers[msg.sender].pop();
                 emit MinterRemoved(msg.sender, _minter);
                 minterFoundAndRemoved = true;
@@ -136,7 +135,6 @@ contract MintController is Controller {
             controllers[msg.sender].push(_minter);
         }
         if (minterController[_minter] != msg.sender) revert MintController__MinterHasController();
-        isMinter[_minter] = true;
         minterAllowance[_minter] = _newAllowance;
         emit MinterConfigured(msg.sender, _minter, _newAllowance);
         return _setMinterAllowance(_minter, _newAllowance);
