@@ -146,7 +146,7 @@ contract MintController is Controller {
      * @param _minter The address of the minter.
      * @return A boolean indicating whether the allowance was successfully incremented.
      */
-    function incrementMinterAllowance(
+    function increaseMinterAllowance(
         uint256 _allowanceIncrement,
         address _minter
     ) external onlyController returns (bool) {
@@ -167,7 +167,7 @@ contract MintController is Controller {
      * @param _minter The address of the minter.
      * @return A boolean indicating whether the allowance was successfully decremented.
      */
-    function decrementMinterAllowance(
+    function decreaseMinterAllowance(
         uint256 _allowanceDecrement,
         address _minter
     ) external onlyController returns (bool) {
