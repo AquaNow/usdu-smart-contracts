@@ -332,7 +332,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         notBlacklisted(to)
         returns (bool)
     {
-        if (value > allowed[from][msg.sender]) revert AllowanceExceeded();
+        if (value > allowed[from][msg.sender] || value == 0) revert AllowanceExceeded();
         _transfer(from, to, value);
         allowed[from][msg.sender] -= value;
         return true;
