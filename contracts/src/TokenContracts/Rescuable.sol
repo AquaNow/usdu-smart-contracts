@@ -11,7 +11,7 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
  * @notice Contract that allows rescuing ERC20 tokens locked up in this contract by a "rescuer" role.
  * @dev Inherits from PermissionAdmin to manage rescuer permissions.
  */
-contract Rescuable is PermissionAdmin {
+abstract contract Rescuable is PermissionAdmin {
     using SafeERC20 for IERC20;
 
     address internal _rescuer;
