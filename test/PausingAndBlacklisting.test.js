@@ -5,7 +5,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 !developmentChains.includes(network.name)
   ? describe.skip
   : describe("Pausing and Blacklisting Unit Tests", function () {
-      let tokenv1, masterMinter, owner, permissionAdmin, controllerAdmin, blacklister, pauser, blacklistedUser;
+      let tokenv1, masterMinter, owner, permissionAdmin, controllerAdmin, blacklister, pauser, blacklistedUser, random;
 
       beforeEach(async () => {
         await deployments.fixture(["all"]); // Deploys all contracts in the deployment scripts
@@ -17,6 +17,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         blacklister = accounts[3];
         pauser = accounts[4];
         blacklistedUser = accounts[15];
+        random = accounts[15];
 
         const tokenv1Deployment = await deployments.get("TokenV1");
         tokenv1 = await ethers.getContractAt("TokenV1", tokenv1Deployment.address, owner);
@@ -49,6 +50,10 @@ const { developmentChains } = require("../helper-hardhat-config");
           const isBlacklisted = await tokenv1.isBlacklisted(blacklistedUser.address);
           console.log("Blacklisted User:", blacklistedUser.address, "isBlacklisted:", isBlacklisted);
           assert.equal(isBlacklisted, true);
+        });
+
+        it("should revert when blacklister tries to unblacklist an already unblacklisted user", async () => {
+          await expect(tokenv1.connect(blacklister).unBlacklist(random.address)).to.be.revertedWith(`Blacklistable__NotBlacklisted`);
         });
 
         it("should allow blacklister to unblacklist a user", async () => {

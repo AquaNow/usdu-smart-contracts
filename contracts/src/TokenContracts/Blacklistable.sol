@@ -43,6 +43,9 @@ contract Blacklistable is PermissionAdmin {
     /// @notice Error thrown when the blacklister tries to blacklist themselves.
     error Blacklistable__BlacklisterSelfBlacklist();
 
+    /// @notice Error thrown when trying to unblacklst an address that is already non blacklisted.
+    error Blacklistable__NotBlacklisted(address account);
+
     /**
      * @dev Modifier to make a function callable only by the blacklister.
      */
@@ -100,6 +103,7 @@ contract Blacklistable is PermissionAdmin {
      * @dev Can only be called by the current blacklister.
      */
     function unBlacklist(address _account) external onlyBlacklister {
+         if (!blacklisted[_account]) revert Blacklistable__NotBlacklisted(_account);
         blacklisted[_account] = false;
         emit UnBlacklisted(_account);
     }
