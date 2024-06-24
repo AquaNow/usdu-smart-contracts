@@ -62,12 +62,10 @@ contract Controller is ControllerAdmin {
         if (_minter == address(0)) {
             revert Controller__MinterAddressIsZero();
         }
-        if (minterController[_minter] == address(0)) {
-            minterController[_minter] = _controller;
-        }
-        if (minterController[_minter] != _controller) {
+        if(minterController[_minter] != address(0)) {
             revert Controller__MinterHasController();
         }
+        minterController[_minter] = _controller;
         controllers[_controller].push(_minter);
         isController[_controller] = true;
         emit ControllerConfigured(_controller, _minter);
