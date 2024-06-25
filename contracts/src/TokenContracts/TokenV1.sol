@@ -486,4 +486,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         _approve(owner, spender, currentAllowance - decrement);
         return true;
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

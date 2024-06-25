@@ -81,4 +81,7 @@ contract ControllerAdmin is Ownable {
     function getMaxMinters() external view returns (uint256) {
         return _maxNumOfMinters;
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

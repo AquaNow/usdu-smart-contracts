@@ -115,4 +115,7 @@ contract Ownable is Initializable {
         _pendingOwner = address(0);
         emit OwnershipTransferred(oldOwner, _owner);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

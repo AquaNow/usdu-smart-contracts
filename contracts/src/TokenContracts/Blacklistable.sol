@@ -120,4 +120,7 @@ contract Blacklistable is PermissionAdmin {
         _blacklister = _newBlacklister;
         emit BlacklisterChanged(_blacklister);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

@@ -39,4 +39,7 @@ abstract contract AbstractTokenV1 is IERC20 {
      * @dev This function must be overridden in the derived contract.
      */
     function _transfer(address from, address to, uint256 value) internal virtual;
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

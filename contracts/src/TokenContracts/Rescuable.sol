@@ -70,4 +70,7 @@ abstract contract Rescuable is PermissionAdmin {
         _rescuer = newRescuer;
         emit RescuerChanged(newRescuer);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

@@ -10,3 +10,4 @@ contracts/.DS_Store
 **/crytic-compile
 **/crytic-export
 fireblocks_secret.key
+out

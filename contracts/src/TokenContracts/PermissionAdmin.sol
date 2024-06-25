@@ -51,4 +51,7 @@ abstract contract PermissionAdmin is Ownable {
         _permissionAdmin = _newAdmin;
         emit PermissionAdminChanged(_permissionAdmin);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

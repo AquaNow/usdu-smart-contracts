@@ -200,4 +200,7 @@ contract MintController is Controller {
     function _setMinterAllowance(address _minter, uint256 _newAllowance) internal returns (bool) {
         return minterManager.configureMinter(_minter, _newAllowance);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

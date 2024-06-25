@@ -107,4 +107,7 @@ contract Controller is ControllerAdmin {
     function isMinter(address _minter) external view returns (bool) {
         return minterController[_minter] != address(0);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }

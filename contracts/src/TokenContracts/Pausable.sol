@@ -105,4 +105,7 @@ contract Pausable is PermissionAdmin {
         _pauser = _newPauser;
         emit PauserChanged(_pauser);
     }
+
+    // Storage Gap for future upgrades
+    uint256[49] private __gap;
 }
