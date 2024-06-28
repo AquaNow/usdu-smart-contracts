@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.11;
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {AbstractTokenV1} from "../src/TokenContracts/AbstractTokenV1.sol";
 import {Ownable} from "../src/TokenContracts/Ownable.sol";
