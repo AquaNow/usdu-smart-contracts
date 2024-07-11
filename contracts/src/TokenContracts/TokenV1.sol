@@ -183,9 +183,9 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @param newRescuer The address of the new rescuer.
      */
     function initializeToken(
-        string memory tokenName,
-        string memory tokenSymbol,
-        string memory tokenCurrency,
+        string calldata tokenName,
+        string calldata tokenSymbol,
+        string calldata tokenCurrency,
         uint8 tokenDecimals,
         address newMasterMinter,
         address newPauser,
