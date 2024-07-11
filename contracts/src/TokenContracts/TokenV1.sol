@@ -7,12 +7,14 @@ import {Ownable} from "./Ownable.sol";
 import {Pausable} from "./Pausable.sol";
 import {Blacklistable} from "./Blacklistable.sol";
 import {Rescuable} from "./Rescuable.sol";
+import {MinterManagementInterface} from "../Minting/MinterManagerInterface.sol";
 
 /**
  * @title TokenV1
  * @dev ERC20 Token backed by fiat reserves with additional functionality for minting, burning, pausing, blacklisting, and rescuing tokens.
+ * Inherits MinterManagementInterface to comply with minter management specifications.
  */
-contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable {
+contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable, MinterManagementInterface {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
@@ -244,7 +246,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @param minter The address of the minter.
      * @return The minting allowance of the minter.
      */
-    function getMinterAllowance(address minter) external view returns (uint256) {
+    function getMinterAllowance(address minter) external view override returns (uint256) {
         return minterAllowance[minter];
     }
 
@@ -384,7 +386,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     function configureMinter(
         address minter,
         uint256 _minterAllowedAmount
-    ) external whenNotPaused onlyMasterMinter returns (bool) {
+    ) external override whenNotPaused onlyMasterMinter returns (bool) {
         isMinter[minter] = true;
         minterAllowance[minter] = _minterAllowedAmount;
 
@@ -397,7 +399,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @param minter The address of the minter to remove.
      * @return True if the operation was successful.
      */
-    function removeMinter(address minter) external onlyMasterMinter returns (bool) {
+    function removeMinter(address minter) external override onlyMasterMinter returns (bool) {
         isMinter[minter] = false;
         minterAllowance[minter] = 0;
         emit MinterRemoved(minter);
