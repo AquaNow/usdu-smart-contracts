@@ -42,7 +42,8 @@ const { developmentChains } = require("../helper-hardhat-config");
         });
 
         it("should allow controller to set max number of minters", async () => {
-            await masterMinter.connect(controllerAdmin).setMaxNumberOfMinters(5);
+            await expect(masterMinter.connect(controllerAdmin).setMaxNumberOfMinters(5)).to.emit(masterMinter, "MaxNumberOfMintersChanged")
+            .withArgs(5);;
           assert.equal(await masterMinter.getMaxMinters(), 5);
         });
 

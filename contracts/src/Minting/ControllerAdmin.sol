@@ -20,6 +20,10 @@ contract ControllerAdmin is Ownable {
     /// @param admin The new admin address.
     event ControllerAdminChanged(address indexed admin);
 
+    /// @notice Emitted when the maximum number of minters is changed.
+    /// @param maxNumOfMinters The new maximum number of minters.
+    event MaxNumberOfMintersChanged(uint256 maxNumOfMinters);
+
     /// @notice Modifier to check if the caller is the controller admin.
     modifier onlyControllerAdmin() {
         if (msg.sender != _controllerAdmin) {
@@ -72,6 +76,7 @@ contract ControllerAdmin is Ownable {
             revert ControllerAdmin__MaxMintersCannotBeZero();
         }
         _maxNumOfMinters = _newMax;
+        emit MaxNumberOfMintersChanged(_newMax);
     }
 
     /**

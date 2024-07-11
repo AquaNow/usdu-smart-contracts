@@ -143,11 +143,12 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
 
     /**
      * @dev Error thrown when an attempt to decrease the allowance fails.
+     * @param owner The owner address.
      * @param spender The spender address.
      * @param currentAllowance The current allowance.
      * @param decrement The decrement amount.
      */
-    error FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 decrement);
+    error FailedDecreaseAllowance(address owner, address spender, uint256 currentAllowance, uint256 decrement);
 
     /**
      * @dev Error thrown when an attempt to approve a non-zero to non-zero allowance is made.
@@ -480,7 +481,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         address owner = msg.sender;
         uint256 currentAllowance = allowed[owner][spender];
         if (currentAllowance < decrement) {
-            revert FailedDecreaseAllowance(spender, currentAllowance, decrement);
+            revert FailedDecreaseAllowance(owner, spender, currentAllowance, decrement);
         }
 
         _approve(owner, spender, currentAllowance - decrement);

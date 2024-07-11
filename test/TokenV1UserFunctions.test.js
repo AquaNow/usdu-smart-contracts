@@ -63,13 +63,14 @@ const { developmentChains } = require("../helper-hardhat-config");
             const receipt = await ethers.provider.getTransactionReceipt(error.transactionHash);
             const abiCoder = new ethers.utils.AbiCoder();
             const decoded = abiCoder.decode(
-              ['address', 'uint256', 'uint256'],
+              ['address', 'address', 'uint256', 'uint256'],
               ethers.utils.hexDataSlice(error.data, 4)
             );
 
-            expect(decoded[0]).to.equal(random3.address);
-            expect(decoded[1].toString()).to.equal('5');
-            expect(decoded[2]).to.equal(10);
+            expect(decoded[0]).to.equal(minter1.address);
+            expect(decoded[1]).to.equal(random3.address);
+            expect(decoded[2].toString()).to.equal('5');
+            expect(decoded[3]).to.equal(10);
           }
 
           expect(await tokenv1.connect(minter1).allowance(minter1.address, random3.address)).to.equal(5);
