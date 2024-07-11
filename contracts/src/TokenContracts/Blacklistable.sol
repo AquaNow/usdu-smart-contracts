@@ -35,14 +35,10 @@ contract Blacklistable is PermissionAdmin {
     /// @param account The address that is already blacklisted.
     error Blacklistable__AccountBlacklisted(address account);
 
-    /// @notice Error thrown when trying to blacklist an account that is already blacklisted.
-    /// @param account The address that is already blacklisted.
-    error Blacklistable__AlreadyBlacklisted(address account);
-
     /// @notice Error thrown when the blacklister tries to blacklist themselves.
     error Blacklistable__BlacklisterSelfBlacklist();
 
-    /// @notice Error thrown when trying to unblacklst an address that is already non blacklisted.
+    /// @notice Error thrown when trying to unblacklist an address that is already non blacklisted.
     error Blacklistable__NotBlacklisted(address account);
 
     /**
@@ -88,7 +84,7 @@ contract Blacklistable is PermissionAdmin {
      * @dev The address cannot be the zero address or the blacklister's own address.
      */
     function blacklist(address _account) external onlyBlacklister {
-        if (blacklisted[_account]) revert Blacklistable__AlreadyBlacklisted(_account);
+        if (blacklisted[_account]) revert Blacklistable__AccountBlacklisted(_account);
         if (_account == _blacklister) revert Blacklistable__BlacklisterSelfBlacklist();
         if (_account == address(0)) revert Blacklistable__NoZeroAddress();
         blacklisted[_account] = true;
