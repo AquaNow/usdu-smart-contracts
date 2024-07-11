@@ -193,7 +193,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         address newRescuer
     ) public initializer {
         Ownable.initialize(msg.sender);
-        Pausable.initPaused();
+        Pausable.initializePausable();
 
         if (newMasterMinter == address(0)) revert NoZeroAddress(newMasterMinter);
         if (newPauser == address(0)) revert NoZeroAddress(newPauser);

@@ -78,7 +78,7 @@ contract Pausable is PermissionAdmin {
      * @notice Initializes the contract in an unpaused state.
      * @dev This function should be called during contract initialization.
      */
-    function initPaused() public onlyInitializing {
+    function initializePausable() public onlyInitializing {
         paused = false;
     }
 
