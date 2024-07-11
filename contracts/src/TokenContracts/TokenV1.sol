@@ -320,9 +320,9 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @return True if the operation was successful.
      */
     function transferFrom(
-        address from,
-        address to,
-        uint256 value
+    address from,
+    address to,
+    uint256 value
     )
         external
         override
@@ -332,7 +332,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         notBlacklisted(to)
         returns (bool)
     {
-        if (value > allowed[from][msg.sender] || value == 0) revert AllowanceExceeded();
+        if (value > allowed[from][msg.sender]) revert AllowanceExceeded();
         _transfer(from, to, value);
         allowed[from][msg.sender] -= value;
         return true;
