@@ -399,6 +399,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      */
     function removeMinter(address minter) external onlyMasterMinter returns (bool) {
         isMinter[minter] = false;
+        minterAllowance[minter] = 0;
         emit MinterRemoved(minter);
         return true;
     }
