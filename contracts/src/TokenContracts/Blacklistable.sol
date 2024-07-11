@@ -55,7 +55,7 @@ contract Blacklistable is PermissionAdmin {
     }
 
     /**
-     * @dev Modifier to make a function callable only if the account is not blacklisted.
+     * @dev Modifier to make a function callable only if the blacklister is set and the account is not blacklisted.
      * @param _account The address to check.
      */
     modifier notBlacklisted(address _account) {
