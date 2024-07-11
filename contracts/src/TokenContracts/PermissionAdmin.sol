@@ -20,8 +20,7 @@ abstract contract PermissionAdmin is Ownable {
     error PermissionAdmin__CallerNotPermissionAdmin();
 
     /// @notice Error thrown when trying to set the permission admin to the zero address.
-    /// @param account The address that was attempted to be set as the permission admin.
-    error PermissionAdmin__NoZeroAddress(address account);
+    error PermissionAdmin__NoZeroAddress();
     
     /**
      * @dev Modifier to make a function callable only by the permission admin.
@@ -47,7 +46,7 @@ abstract contract PermissionAdmin is Ownable {
      * @dev Only the contract owner can call this function. The new admin address cannot be the zero address.
      */
     function setPermissionAdmin(address _newAdmin) external onlyOwner {
-        if (_newAdmin == address(0)) revert PermissionAdmin__NoZeroAddress(_newAdmin);
+        if (_newAdmin == address(0)) revert PermissionAdmin__NoZeroAddress();
         _permissionAdmin = _newAdmin;
         emit PermissionAdminChanged(_permissionAdmin);
     }

@@ -20,8 +20,7 @@ abstract contract Rescuable is PermissionAdmin {
     error Rescuable__CallerNotRescuer();
 
     /// @notice Error thrown when trying to set the rescuer to the zero address.
-    /// @param value The address that was attempted to be set as the rescuer.
-    error Rescuable__NoZeroAddress(address value);
+    error Rescuable__NoZeroAddress();
 
     /// @notice Emitted when the rescuer is changed.
     /// @param newRescuer The address of the new rescuer.
@@ -66,7 +65,7 @@ abstract contract Rescuable is PermissionAdmin {
      * @dev The new rescuer address cannot be the zero address.
      */
     function updateRescuer(address newRescuer) external onlyPermissionAdmin {
-        if (newRescuer == address(0)) revert Rescuable__NoZeroAddress(newRescuer);
+        if (newRescuer == address(0)) revert Rescuable__NoZeroAddress();
         _rescuer = newRescuer;
         emit RescuerChanged(newRescuer);
     }

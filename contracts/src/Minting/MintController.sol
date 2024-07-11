@@ -45,7 +45,7 @@ contract MintController is Controller {
 
     // Error messages for various failure cases.
     error MintController__NoMinters();
-    error MintController__NoZeroAddress(address account);
+    error MintController__NoZeroAddress();
     error MintController__ExceedMaxMinters();
     error MintController__MinterHasController();
     error MintController__IncrementTooSmall();
@@ -126,7 +126,7 @@ contract MintController is Controller {
         address _minter,
         uint256 _newAllowance
     ) external onlyController returns (bool) {
-        if (_minter == address(0)) revert MintController__NoZeroAddress(_minter);
+        if (_minter == address(0)) revert MintController__NoZeroAddress();
         if (minterController[_minter] == address(0)) {
             minterController[_minter] = msg.sender;
             if (controllers[msg.sender].length + 1 > _maxNumOfMinters)

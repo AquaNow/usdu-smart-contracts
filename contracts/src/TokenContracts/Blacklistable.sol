@@ -29,8 +29,7 @@ contract Blacklistable is PermissionAdmin {
     error Blacklistable__CallerNotBlacklister();
 
     /// @notice Error thrown when trying to set the blacklister to the zero address.
-    /// @param account The address that was attempted to be set as the blacklister.
-    error Blacklistable__NoZeroAddress(address account);
+    error Blacklistable__NoZeroAddress();
 
     /// @notice Error thrown when the account is already blacklisted.
     /// @param account The address that is already blacklisted.
@@ -59,7 +58,7 @@ contract Blacklistable is PermissionAdmin {
      * @param _account The address to check.
      */
     modifier notBlacklisted(address _account) {
-        if (_blacklister == address(0)) revert Blacklistable__NoZeroAddress(_blacklister);
+        if (_blacklister == address(0)) revert Blacklistable__NoZeroAddress();
         if (blacklisted[_account]) revert Blacklistable__AccountBlacklisted(_account);
         _;
     }
@@ -91,7 +90,7 @@ contract Blacklistable is PermissionAdmin {
     function blacklist(address _account) external onlyBlacklister {
         if (blacklisted[_account]) revert Blacklistable__AlreadyBlacklisted(_account);
         if (_account == _blacklister) revert Blacklistable__BlacklisterSelfBlacklist();
-        if (_account == address(0)) revert Blacklistable__NoZeroAddress(_account);
+        if (_account == address(0)) revert Blacklistable__NoZeroAddress();
         blacklisted[_account] = true;
         emit Blacklisted(_account);
     }
@@ -116,7 +115,7 @@ contract Blacklistable is PermissionAdmin {
      * @dev The new blacklister address cannot be the zero address.
      */
     function updateBlacklister(address _newBlacklister) external onlyPermissionAdmin {
-        if (_newBlacklister == address(0)) revert Blacklistable__NoZeroAddress(_newBlacklister);
+        if (_newBlacklister == address(0)) revert Blacklistable__NoZeroAddress();
         _blacklister = _newBlacklister;
         emit BlacklisterChanged(_blacklister);
     }

@@ -36,8 +36,7 @@ contract Pausable is PermissionAdmin {
     error Pausable__AlreadyUnpaused();
 
     /// @notice Error thrown when trying to set the pauser to the zero address.
-    /// @param account The address that was attempted to be set as the pauser.
-    error Pausable__NoZeroAddress(address account);
+    error Pausable__NoZeroAddress();
 
     /**
      * @dev Modifier to make a function callable only when the contract is not paused.
@@ -101,7 +100,7 @@ contract Pausable is PermissionAdmin {
      * @dev The new pauser address cannot be the zero address.
      */
     function updatePauser(address _newPauser) external onlyPermissionAdmin {
-        if (_newPauser == address(0)) revert Pausable__NoZeroAddress(_newPauser);
+        if (_newPauser == address(0)) revert Pausable__NoZeroAddress();
         _pauser = _newPauser;
         emit PauserChanged(_pauser);
     }

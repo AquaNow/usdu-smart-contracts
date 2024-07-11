@@ -18,9 +18,8 @@ contract Ownable is Initializable {
 
     /**
      * @notice Error thrown when a zero address is provided.
-     * @param value The zero address that triggered the error.
      */
-    error Ownable__NoZeroAddress(address value);
+    error Ownable__NoZeroAddress();
 
     /**
      * @notice Error thrown when a caller is not the owner.
@@ -100,7 +99,7 @@ contract Ownable is Initializable {
      * @param newOwner The address to transfer ownership to.
      */
     function transferOwnership(address newOwner) external onlyOwner {
-        if (newOwner == address(0)) revert Ownable__NoZeroAddress(newOwner);
+        if (newOwner == address(0)) revert Ownable__NoZeroAddress();
         _pendingOwner = newOwner;
         emit OwnershipTransferStarted(_owner, newOwner);
     }

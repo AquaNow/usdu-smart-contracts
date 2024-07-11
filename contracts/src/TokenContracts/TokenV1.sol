@@ -96,9 +96,8 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
 
     /**
      * @dev Error thrown when a zero address is provided.
-     * @param account The zero address that triggered the error.
      */
-    error NoZeroAddress(address account);
+    error NoZeroAddress();
 
     /**
      * @dev Error thrown when the mint amount is zero.
@@ -195,10 +194,10 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         Ownable.initialize(msg.sender);
         Pausable.initializePausable();
 
-        if (newMasterMinter == address(0)) revert NoZeroAddress(newMasterMinter);
-        if (newPauser == address(0)) revert NoZeroAddress(newPauser);
-        if (newBlacklister == address(0)) revert NoZeroAddress(newBlacklister);
-        if (newRescuer == address(0)) revert NoZeroAddress(newRescuer);
+        if (newMasterMinter == address(0)) revert NoZeroAddress();
+        if (newPauser == address(0)) revert NoZeroAddress();
+        if (newBlacklister == address(0)) revert NoZeroAddress();
+        if (newRescuer == address(0)) revert NoZeroAddress();
 
         _name = tokenName;
         _symbol = tokenSymbol;
@@ -307,8 +306,8 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @param value Allowance amount.
      */
     function _approve(address owner, address spender, uint256 value) internal override {
-        if (owner == address(0)) revert NoZeroAddress(owner);
-        if (spender == address(0)) revert NoZeroAddress(spender);
+        if (owner == address(0)) revert NoZeroAddress();
+        if (spender == address(0)) revert NoZeroAddress();
         allowed[owner][spender] = value;
         emit Approval(owner, spender, value);
     }
@@ -367,8 +366,8 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @param value Transfer amount.
      */
     function _transfer(address from, address to, uint256 value) internal override {
-        if (from == address(0)) revert NoZeroAddress(from);
-        if (to == address(0)) revert NoZeroAddress(to);
+        if (from == address(0)) revert NoZeroAddress();
+        if (to == address(0)) revert NoZeroAddress();
         if (value > balances[from]) revert AmountExceedsBalance();
 
         balances[from] -= value;
@@ -429,7 +428,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         address _to,
         uint256 _amount
     ) public whenNotPaused notBlacklisted(msg.sender) notBlacklisted(_to) returns (bool) {
-        if (_to == address(0)) revert NoZeroAddress(_to);
+        if (_to == address(0)) revert NoZeroAddress();
         if (_amount <= 0) revert MintMustBeGreaterThanZero();
         if (!isMinter[_to]) revert UnconfiguredMinter();
         if (minterAllowance[_to] < _amount) revert AllowanceExceeded();
@@ -447,7 +446,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @param _newMasterMinter The address of the new master minter.
      */
     function updateMasterMinter(address _newMasterMinter) external onlyOwner {
-        if (_newMasterMinter == address(0)) revert NoZeroAddress(_newMasterMinter);
+        if (_newMasterMinter == address(0)) revert NoZeroAddress();
         masterMinter = _newMasterMinter;
         emit MasterMinterChanged(masterMinter);
     }
