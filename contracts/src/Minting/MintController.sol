@@ -15,8 +15,6 @@ import {Ownable} from "../TokenContracts/Ownable.sol";
 contract MintController is Controller {
     /// @notice The interface to manage minters.
     MinterManagementInterface internal minterManager;
-    /// @notice A mapping from minter addresses to their allowances.
-    mapping(address => uint256) internal minterAllowance;
 
     /// @notice Event emitted when the minter manager is set.
     event MinterManagerSet(address indexed _oldMinterManager, address indexed _newMinterManager);
@@ -135,7 +133,6 @@ contract MintController is Controller {
             controllers[msg.sender].push(_minter);
         }
         if (minterController[_minter] != msg.sender) revert MintController__MinterHasController();
-        minterAllowance[_minter] = _newAllowance;
         emit MinterConfigured(msg.sender, _minter, _newAllowance);
         return _setMinterAllowance(_minter, _newAllowance);
     }
