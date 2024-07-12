@@ -80,9 +80,6 @@ contract Controller is ControllerAdmin {
         if (controllers[_controller].length == 0) {
             revert Controller__ControllerNoMinters();
         }
-        if (!isController[msg.sender]) {
-            revert Controller__CallerNotController();
-        }
         return controllers[_controller];
     }
 
