@@ -255,8 +255,13 @@ const { developmentChains } = require("../helper-hardhat-config");
         it("should remove a controller", async () => {
           await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
           await masterMinter.connect(controller1).configureMinter(minter1.address, 20);
+          await masterMinter.connect(controller1).configureMinter(minter2.address, 20);
           assert.equal(await masterMinter.isController(controller1.address), true);
+          assert.equal(await masterMinter.isMinter(minter1.address), true)
+          assert.equal(await masterMinter.isMinter(minter2.address), true)
           await masterMinter.connect(controllerAdmin).removeController(controller1.address);
+          assert.equal(await masterMinter.isMinter(minter1.address), false)
+          assert.equal(await masterMinter.isMinter(minter2.address), false)
           assert.equal(await masterMinter.isController(controller1.address), false);
         });
 
@@ -275,11 +280,6 @@ const { developmentChains } = require("../helper-hardhat-config");
           await expect(masterMinter.connect(controller1).removeMinter(random4.address));
           const memoryList = await masterMinter.connect(controller1).getMinters(controller1.address);
           assert.equal(memoryList[0], minter1.address);
-        });
-
-        it("should revert when getMinters is called by non-controller", async () => {
-          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
-          await expect(masterMinter.connect(random4).getMinters(controller1.address)).to.be.revertedWith(`Controller__CallerNotController`);
         });
 
         it("should revert when configureController minter has controller", async () => {

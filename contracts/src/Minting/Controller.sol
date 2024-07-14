@@ -91,6 +91,10 @@ contract Controller is ControllerAdmin {
         if (_controller == address(0)) {
             revert Controller__ControllerAddressIsZero();
         }
+        address[] memory minters = controllers[_controller];
+        for (uint256 i = 0; i < minters.length; i++) {
+            minterController[minters[i]] = address(0);
+        }
         isController[_controller] = false;
         delete controllers[_controller];
         emit ControllerRemoved(_controller);
