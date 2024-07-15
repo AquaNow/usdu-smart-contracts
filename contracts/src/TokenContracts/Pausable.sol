@@ -9,7 +9,7 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
  * @notice Base contract which allows children to implement an emergency stop mechanism.
  * @dev Inherits from PermissionAdmin to manage pauser permissions.
  */
-contract Pausable is PermissionAdmin {
+abstract contract Pausable is PermissionAdmin {
     address internal _pauser;
     bool public paused;
 

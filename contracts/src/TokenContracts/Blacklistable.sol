@@ -9,7 +9,7 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
  * @notice Contract that allows accounts to be blacklisted by a "blacklister" role.
  * @dev Inherits from PermissionAdmin to manage blacklister permissions.
  */
-contract Blacklistable is PermissionAdmin {
+abstract contract Blacklistable is PermissionAdmin {
     address internal _blacklister;
     mapping(address => bool) public blacklisted;
 
