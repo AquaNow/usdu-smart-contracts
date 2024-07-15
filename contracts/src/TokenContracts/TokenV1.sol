@@ -138,9 +138,9 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     error MustMintGreaterThanZero();
 
     /**
-     * @dev Error thrown when a minter is unconfigured.
+     * @dev Error thrown when a minter tries to mint to a different address.
      */
-    error UnconfiguredMinter();
+    error NotSelfMinting();
 
     /**
      * @dev Error thrown when an attempt to decrease the allowance fails.
@@ -422,7 +422,7 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     }
 
     /**
-     * @notice Mints new tokens to a specified address.
+     * @notice Allows a minter to minter some of its tokens from allowance.
      * @param _to The address to receive the minted tokens.
      * @param _amount The amount of tokens to mint.
      * @return True if the operation was successful.
@@ -430,10 +430,10 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     function mint(
         address _to,
         uint256 _amount
-    ) public whenNotPaused notBlacklisted(msg.sender) notBlacklisted(_to) returns (bool) {
+    ) public whenNotPaused onlyMinter notBlacklisted(msg.sender) notBlacklisted(_to) returns (bool) {
         if (_to == address(0)) revert NoZeroAddress();
         if (_amount <= 0) revert MintMustBeGreaterThanZero();
-        if (!isMinter[_to]) revert UnconfiguredMinter();
+        if (msg.sender != _to) revert NotSelfMinting();
         if (minterAllowance[_to] < _amount) revert AllowanceExceeded();
 
         _totalSupply += _amount;

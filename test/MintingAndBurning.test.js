@@ -5,7 +5,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 !developmentChains.includes(network.name)
   ? describe.skip
   : describe("Integration test for minting and burning", function () {
-      let tokenv1, masterMinter, owner, permissionAdmin, controllerAdmin, blacklister, pauser, minter1, rescuer;
+      let tokenv1, masterMinter, owner, permissionAdmin, controllerAdmin, blacklister, pauser, minter1, minter2, rescuer;
       const mintAmount = 5;
       const burnAmount = 4;
       const initialBalance = 20;
@@ -22,6 +22,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         pauser = accounts[4];
         minter1 = accounts[5];
         rescuer = accounts[6];
+        minter2 = accounts[7];
 
         const tokenv1Deployment = await deployments.get("TokenV1");
         tokenv1 = await ethers.getContractAt("TokenV1", tokenv1Deployment.address, owner);
@@ -54,7 +55,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 
         it("should not allow minting if the minter is removed", async () => {
           await masterMinter.connect(controllerAdmin).removeMinter(minter1.address);
-          await expect(tokenv1.connect(minter1).mint(minter1.address, mintAmount)).to.be.revertedWith(`UnconfiguredMinter`);
+          await expect(tokenv1.connect(minter1).mint(minter1.address, mintAmount)).to.be.revertedWith(`NotMinter`);
         });
 
         it("should not allow burning if the minter is removed", async () => {
@@ -102,6 +103,10 @@ const { developmentChains } = require("../helper-hardhat-config");
           expect(await tokenv1.minterAllowance(minter1.address)).to.equal(initialBalance - mintAmount);
         });
 
+        it("should not allow minting if it is minting a different address", async () => {
+          await expect(tokenv1.connect(minter1).mint(minter2.address, mintAmount)).to.be.revertedWith(`NotSelfMinting`);
+        });
+
         it("should mint and burn successfully", async () => {
           await tokenv1.connect(minter1).mint(minter1.address, mintAmount);
           assert.equal(await tokenv1.totalSupply(), mintAmount);
@@ -112,5 +117,31 @@ const { developmentChains } = require("../helper-hardhat-config");
           assert.equal(await tokenv1.totalSupply(), remainingAmount);
           assert.equal(await tokenv1.balanceOf(minter1.address), remainingAmount);
         });
+      });
+    
+      describe("Minting and its Impact on Allowances", function () {
+          it("should correctly reduce the minter's allowance after a successful mint", async () => {
+              await tokenv1.connect(minter1).mint(minter1.address, mintAmount);
+              const postMintAllowance = initialBalance - mintAmount;
+              expect(await tokenv1.minterAllowance(minter1.address)).to.equal(postMintAllowance);
+          });
+      
+          it("should prevent minting beyond the minter's total allowance", async () => {
+              const excessiveAmount = initialBalance + 10; // Amount greater than initial allowance
+              await expect(tokenv1.connect(minter1).mint(minter1.address, excessiveAmount))
+                  .to.be.revertedWith("AllowanceExceeded");
+          });
+      });
+    
+      describe("Edge Cases and Robustness", function () {
+          it("should not allow minting to zero address", async () => {
+              await expect(tokenv1.connect(minter1).mint(ethers.constants.AddressZero, mintAmount))
+                  .to.be.revertedWith("NoZeroAddress");
+          });
+      
+          it("should handle edge case where mint amount is zero", async () => {
+              await expect(tokenv1.connect(minter1).mint(minter1.address, 0))
+                  .to.be.revertedWith("MintMustBeGreaterThanZero");
+          });
       });
     });

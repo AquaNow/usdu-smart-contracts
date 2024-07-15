@@ -24,7 +24,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         const masterMinterDeployment = await deployments.get("MasterMinter");
         masterMinter = await ethers.getContractAt("MasterMinter", masterMinterDeployment.address, owner);
 
-        await masterMinter.connect(owner).configureMinter(tokenv1.address, rescueAmount);
+        await masterMinter.connect(owner).configureMinter(minter.address, rescueAmount);
         // Set rescuer
         await tokenv1.updateRescuer(rescuer.address);
       });
@@ -36,8 +36,11 @@ const { developmentChains } = require("../helper-hardhat-config");
         });
 
         it("should allow rescuer to rescue ERC20 tokens", async () => {
-          // Mint tokens to contract itself to simulate stuck tokens
-          await tokenv1.connect(minter).mint(tokenv1.address, rescueAmount);
+          // Mint tokens
+          await tokenv1.connect(minter).mint(minter.address, rescueAmount);
+
+          // simulate stuck tokens by transferring it to token v1
+          await tokenv1.connect(minter).transfer(tokenv1.address, rescueAmount);
 
           // Balance before rescue
           const balanceBefore = await tokenv1.balanceOf(otherAccount.address);
@@ -69,14 +72,20 @@ const { developmentChains } = require("../helper-hardhat-config");
         });
 
         it("should not allow rescuing tokens to the zero address", async () => {
-          await tokenv1.connect(owner).mint(tokenv1.address, rescueAmount);
+          // Mint tokens
+          await tokenv1.connect(minter).mint(minter.address, rescueAmount);
+          // simulate stuck tokens by transferring it to token v1
+          await tokenv1.connect(minter).transfer(tokenv1.address, rescueAmount);
           await expect(
             tokenv1.connect(rescuer).rescueERC20(tokenv1.address, ethers.constants.AddressZero, rescueAmount)
           ).to.be.revertedWith(`NoZeroAddress`);
         });
 
         it("should not allow rescuing more tokens than the contract balance", async () => {
-          await tokenv1.connect(owner).mint(tokenv1.address, rescueAmount);
+          // Mint tokens
+          await tokenv1.connect(minter).mint(minter.address, rescueAmount);
+          // simulate stuck tokens by transferring it to token v1
+          await tokenv1.connect(minter).transfer(tokenv1.address, rescueAmount);
           const overRescueAmount = rescueAmount.add(1);
           await expect(
             tokenv1.connect(rescuer).rescueERC20(tokenv1.address, otherAccount.address, overRescueAmount)

@@ -136,7 +136,7 @@ const { developmentChains } = require("../helper-hardhat-config");
         });
 
         it("should revert when transaction is submitted by non-minter", async () => {
-          await expect(tokenv1.connect(controller1).mint(controller1.address, 20)).to.be.revertedWith(`UnconfiguredMinter`);
+          await expect(tokenv1.connect(controller1).mint(controller1.address, 20)).to.be.revertedWith(`NotMinter`);
         });
 
         it("should revert when non-minter calls burn", async () => {
