@@ -79,13 +79,15 @@ const { developmentChains } = require("../helper-hardhat-config");
           expect(await tokenv1.connect(minter1).allowance(minter1.address, random3.address)).to.equal(6);
         });
 
-        it("should revert with ApproveNonZeroToNonZero error", async () => {
+        it("should return latest allownace after the approval of new allowance", async () => {
           // Initial approval to set a non-zero allowance
           await tokenv1.connect(minter1).approve(random3.address, 1);
           expect(await tokenv1.allowance(minter1.address, random3.address)).to.equal(1);
 
           // Attempt to approve a non-zero value to a non-zero allowance
-          await expect(tokenv1.connect(minter1).approve(random3.address, 2)).to.be.revertedWith("ApproveNonZeroToNonZero");
+          await tokenv1.connect(minter1).approve(random3.address, 2)
+
+          expect(await tokenv1.allowance(minter1.address, random3.address)).to.equal(2);
         });
 
       });

@@ -152,11 +152,6 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     error FailedDecreaseAllowance(address owner, address spender, uint256 currentAllowance, uint256 decrement);
 
     /**
-     * @dev Error thrown when an attempt to approve a non-zero to non-zero allowance is made.
-     */
-    error ApproveNonZeroToNonZero();
-
-    /**
      * @dev Modifier to make a function callable only by a minter.
      */
     modifier onlyMinter() {
@@ -294,9 +289,6 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
         notBlacklisted(spender)
         returns (bool)
     {
-        if (allowed[msg.sender][spender] != 0 && value != 0) {
-            revert ApproveNonZeroToNonZero();
-        }
         _approve(msg.sender, spender, value);
         return true;
     }
