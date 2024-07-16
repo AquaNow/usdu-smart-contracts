@@ -84,8 +84,9 @@ contract Controller is ControllerAdmin {
     }
 
     /**
-     * @notice Disables a controller by setting its worker to address(0).
-     * @param _controller The address of the controller to disable.
+     * @notice Disables a controller, removing all associated minters and setting the controller's status to inactive.
+     * @dev This function will clear the list of minters associated with the specified controller and delete the controller's record. It will also emit a ControllerRemoved event.
+     * @param _controller The address of the controller to disable. This address must not be the zero address.
      */
     function removeController(address _controller) external onlyControllerAdmin {
         if (_controller == address(0)) {

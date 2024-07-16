@@ -28,7 +28,7 @@ abstract contract Blacklistable is PermissionAdmin {
     /// @notice Error thrown when the caller is not the blacklister.
     error Blacklistable__CallerNotBlacklister();
 
-    /// @notice Error thrown when trying to set the blacklister to the zero address.
+    /// @notice Error thrown when trying to perform an operation with the zero address, which is prohibited.
     error Blacklistable__NoZeroAddress();
 
     /// @notice Error thrown when the account is already blacklisted.
@@ -50,9 +50,11 @@ abstract contract Blacklistable is PermissionAdmin {
     }
 
     /**
-     * @dev Modifier to make a function callable only if the blacklister is set and the account is not blacklisted.
-     * @param _account The address to check.
-     */
+    * @dev Ensures the specified account is not blacklisted and the blacklister is properly set.
+    * @param _account The address to check for blacklisting.
+    * @custom:revert Blacklistable__NoZeroAddress if the blacklister address has not been set (is zero).
+    * @custom:revert Blacklistable__AccountBlacklisted if the account is blacklisted.
+    */
     modifier notBlacklisted(address _account) {
         if (_blacklister == address(0)) revert Blacklistable__NoZeroAddress();
         if (blacklisted[_account]) revert Blacklistable__AccountBlacklisted(_account);
