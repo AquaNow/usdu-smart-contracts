@@ -26,8 +26,6 @@ contract Controller is ControllerAdmin {
     event ControllerConfigured(address indexed _controller, address indexed _minter);
     /// @notice Event emitted when a controller is removed.
     event ControllerRemoved(address indexed _controller);
-    /// @notice Event emitted when a signer is modified.
-    event SignerModified(address indexed _signer);
 
     /**
      * @notice Ensures that the caller is the controller of a non-zero minter address.

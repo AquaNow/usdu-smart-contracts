@@ -11,18 +11,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 abstract contract AbstractTokenV1 is IERC20 {
     /**
-     * @notice Error thrown when the decrease allowance request exceeds the current allowance.
-     * @param spender The address of the spender.
-     * @param currentAllowance The current allowance of the spender.
-     * @param requestedDecrease The amount by which the allowance is requested to be decreased.
-     */
-    error ERC20FailedDecreaseAllowance(
-        address spender,
-        uint256 currentAllowance,
-        uint256 requestedDecrease
-    );
-
-    /**
      * @notice Internal function to set the allowance for a spender over the owner's tokens.
      * @param owner The address of the token owner.
      * @param spender The address of the spender.

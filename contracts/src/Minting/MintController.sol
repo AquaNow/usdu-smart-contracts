@@ -47,7 +47,6 @@ contract MintController is Controller {
     error MintController__ExceedMaxMinters();
     error MintController__MinterHasController();
     error MintController__IncrementTooSmall();
-    error MintController__OnlyForMinterAllowance();
     error MintController__AllowanceTooSmall();
     error MintController__NotMinterController();
 

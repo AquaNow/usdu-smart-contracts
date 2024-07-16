@@ -107,17 +107,6 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     error MintMustBeGreaterThanZero();
 
     /**
-     * @dev Error thrown when an account is already blacklisted.
-     * @param account The blacklisted account.
-     */
-    error AlreadyBlacklisted(address account);
-
-    /**
-     * @dev Error thrown when an attempt to unpause an already unpaused contract is made.
-     */
-    error AlreadyUnpaused();
-
-    /**
      * @dev Error thrown when the amount exceeds the balance.
      */
     error AmountExceedsBalance();
@@ -131,11 +120,6 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
      * @dev Error thrown when the allowance is exceeded.
      */
     error AllowanceExceeded();
-
-    /**
-     * @dev Error thrown when a mint amount is not greater than zero.
-     */
-    error MustMintGreaterThanZero();
 
     /**
      * @dev Error thrown when a minter tries to mint to a different address.
