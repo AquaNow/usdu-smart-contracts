@@ -115,11 +115,12 @@ contract MintController is Controller {
     }
 
     /**
-     * @notice Configures a minter with a specified allowance. If the minter is new, assigns it to the caller and adds it to the caller's minter list.
-     * @param _minter The address of the new minter.
-     * @param _newAllowance The allowance to set for the new minter.
-     * @return A boolean indicating whether the minter was successfully configured.
-     */
+    * @notice Configures a minter with a specified allowance.
+    * @dev After the initial configuration by the ControllerAdmin, this function allows the controller to manage its minters.
+    * @param _minter The address of the new minter.
+    * @param _newAllowance The allowance to set for the new minter.
+    * @return A boolean indicating whether the minter was successfully configured.
+    */
     function configureMinter(
         address _minter,
         uint256 _newAllowance

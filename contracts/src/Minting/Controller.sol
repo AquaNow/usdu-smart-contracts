@@ -48,10 +48,12 @@ contract Controller is ControllerAdmin {
     error Controller__CallerNotController();
 
     /**
-     * @notice Configures a controller with a minter.
-     * @param _controller The address of the controller.
-     * @param _minter The address of the minter.
-     */
+    * @notice Configures a controller with a minter.
+    * @dev This function is called exclusively by the ControllerAdmin to perform the initial configuration of the controller and minter.
+    * @param _controller The address of the controller.
+    * @param _minter The address of the minter.
+    * @custom:restriction This function can only be called by the ControllerAdmin.
+    */
     function configureController(
         address _controller,
         address _minter
