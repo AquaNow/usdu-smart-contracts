@@ -8,10 +8,15 @@ const networkConfig = {
         name: "sepolia",
         confirmations: 2,
         minterAllowance: "50000000000000"
+    },
+    97: {
+        name: "bscTestnet",
+        confirmations: 2,
+        minterAllowance: "50000000000000"
     }
 }
 
-const developmentChains = ["hardhat", "localhost"];
+const developmentChains = ["hardhat", "localhost", "sepolia", "bscTestnet"];
 const VERIFICATION_BLOCK_CONFIRMATIONS = 6;
 
 module.exports = {
