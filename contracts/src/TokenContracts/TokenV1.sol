@@ -136,6 +136,16 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
     error FailedDecreaseAllowance(address owner, address spender, uint256 currentAllowance, uint256 decrement);
 
     /**
+     * @dev Error thrown when an address is not blacklisted.
+     */
+    error NotBlacklisted();
+
+    /**
+     * @dev Error thrown when an address has zero balance.
+     */
+    error ZeroBalance();
+
+    /**
      * @dev Modifier to make a function callable only by a minter.
      */
     modifier onlyMinter() {
@@ -464,6 +474,21 @@ contract TokenV1 is AbstractTokenV1, Ownable, Pausable, Blacklistable, Rescuable
 
         _approve(owner, spender, currentAllowance - decrement);
         return true;
+    }
+
+    /**
+     * @notice Wipes the balance of a blacklisted address, decreasing the totalSupply.
+     * @dev Only the owner can call this function, and the address must be blacklisted.
+     * @param _account The address to wipe.
+     */
+    function wipeBlacklistedAddress(address _account) external onlyOwner {
+        if (!blacklisted[_account]) revert NotBlacklisted();
+        uint256 balance = balances[_account];
+        if (balance == 0) revert ZeroBalance();
+        _totalSupply -= balance;
+        balances[_account] = 0;
+        
+        emit Transfer(_account, address(0), balance);
     }
 
     // Storage Gap for future upgrades
