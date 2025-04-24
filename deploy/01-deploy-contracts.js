@@ -121,8 +121,9 @@ module.exports = async ({ getNamedAccounts }) => {
   const currentControllerAdmin = await masterMinterProxy.getControllerAdmin();
   console.log(`Current Controller Admin: ${currentControllerAdmin}`);
   if (currentControllerAdmin === ethers.constants.AddressZero) {
-    await masterMinterProxy.setControllerAdmin(deployer);
-    console.log(`✅ Controller Admin temporarily set to deployer: ${deployer}`);
+    await masterMinterProxy.setControllerAdmin(mintingAdmin);
+    const currentControllerAdmin = await masterMinterProxy.getControllerAdmin();
+    console.log(`✅ Controller Admin set to mintingAdmin: ${currentControllerAdmin}`);
   } else {
     console.log(`✅ Controller Admin already set to: ${currentControllerAdmin}`);
   }

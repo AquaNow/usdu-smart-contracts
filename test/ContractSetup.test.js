@@ -146,7 +146,7 @@ const { setupTestAccounts } = require("../helpers/test-helpers");
         });
   
         it("should revert when configuring controller before controller admin is configured", async () => {
-          await expect(masterMinter.connect(accounts.mintingAdmin).configureController(accounts.user1.address, accounts.user2.address)).to.be.revertedWith(`ControllerAdmin__CallerNotControllerAdmin`);
+          await expect(masterMinter.connect(accounts.random).configureController(accounts.user1.address, accounts.user2.address)).to.be.revertedWith(`ControllerAdmin__CallerNotControllerAdmin`);
         });
   
         it("should initialize MasterMinter.sol", async () => {
