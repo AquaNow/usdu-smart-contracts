@@ -21,6 +21,8 @@ contract Controller is ControllerAdmin {
     mapping(address => address) public minterController;
     /// @notice Mapping to check if an address is a controller.
     mapping(address => bool) public isController;
+    /// @notice Total number of active controllers
+    uint256 public numberOfControllers;
 
     /// @notice Event emitted when a controller is configured.
     event ControllerConfigured(address indexed _controller, address indexed _minter);
@@ -67,7 +69,12 @@ contract Controller is ControllerAdmin {
         }
         minterController[_minter] = _controller;
         controllers[_controller].push(_minter);
-        isController[_controller] = true;
+        
+        if (!isController[_controller]) {
+            isController[_controller] = true;
+            numberOfControllers++;
+        }
+        
         emit ControllerConfigured(_controller, _minter);
     }
 
@@ -96,7 +103,12 @@ contract Controller is ControllerAdmin {
         for (uint256 i = 0; i < minters.length; i++) {
             minterController[minters[i]] = address(0);
         }
-        isController[_controller] = false;
+        
+        if (isController[_controller]) {
+            isController[_controller] = false;
+            numberOfControllers--;
+        }
+        
         delete controllers[_controller];
         emit ControllerRemoved(_controller);
     }
@@ -111,5 +123,5 @@ contract Controller is ControllerAdmin {
     }
 
     // Storage Gap for future upgrades
-    uint256[49] private __gap;
+    uint256[48] private __gap;
 }

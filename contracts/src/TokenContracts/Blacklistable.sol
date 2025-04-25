@@ -12,6 +12,8 @@ import {PermissionAdmin} from "./PermissionAdmin.sol";
 abstract contract Blacklistable is PermissionAdmin {
     address internal _blacklister;
     mapping(address => bool) public blacklisted;
+    /// @notice Count of currently blacklisted addresses
+    uint256 public blacklistedAddressCount;
 
     /// @notice Emitted when an account is blacklisted.
     /// @param _account The address of the blacklisted account.
@@ -90,6 +92,7 @@ abstract contract Blacklistable is PermissionAdmin {
         if (_account == _blacklister) revert Blacklistable__BlacklisterSelfBlacklist();
         if (_account == address(0)) revert Blacklistable__NoZeroAddress();
         blacklisted[_account] = true;
+        blacklistedAddressCount++;
         emit Blacklisted(_account);
     }
 
@@ -102,6 +105,7 @@ abstract contract Blacklistable is PermissionAdmin {
     function unBlacklist(address _account) external onlyBlacklister {
          if (!blacklisted[_account]) revert Blacklistable__NotBlacklisted(_account);
         blacklisted[_account] = false;
+        blacklistedAddressCount--;
         emit UnBlacklisted(_account);
     }
 
@@ -119,5 +123,5 @@ abstract contract Blacklistable is PermissionAdmin {
     }
 
     // Storage Gap for future upgrades
-    uint256[49] private __gap;
+    uint256[48] private __gap;
 }

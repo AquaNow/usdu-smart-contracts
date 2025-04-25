@@ -1,6 +1,9 @@
 const { assert, expect } = require("chai");
 const { ethers, upgrades, deployments, network } = require("hardhat");
 const { developmentChains } = require("../helper-hardhat-config");
+const { setupTestAccounts } = require("../helpers/test-helpers");
+const path = require("path");
+const fs = require("fs-extra");
 
 const args = [
   "USD Universal",
@@ -22,24 +25,56 @@ const opts = {
 !developmentChains.includes(network.name)
   ? describe.skip
   : describe("Token Upgradeable Tests", function () {
-      let owner, permissionAdmin, controllerAdmin, controller1, minter1;
+      let accounts;
+      let tokenProxyAddress;
 
       before(async () => {
-        const accounts = await ethers.getSigners();
-        owner = accounts[0];
-        permissionAdmin = accounts[1];
-        controllerAdmin = accounts[2];
-        controller1 = accounts[3];
-        minter1 = accounts[4];
+        const signers = await ethers.getSigners();
+        accounts = setupTestAccounts(signers);
+        
+        // Try to load archive data for previous deployments
+        const archiveDir = path.join(
+          __dirname,
+          '..',
+          'deployments',
+          'archive',
+          'v1',
+          network.name
+        );
+        
+        try {
+          if (fs.existsSync(path.join(archiveDir, 'TokenV1.json'))) {
+            const tokenArchiveData = require(path.join(archiveDir, 'TokenV1.json'));
+            tokenProxyAddress = tokenArchiveData.proxyAddress;
+            console.log(`Found archived TokenV1 deployment at: ${tokenProxyAddress}`);
+          }
+        } catch (error) {
+          console.log(`Archive data not found or could not be loaded: ${error.message}`);
+        }
       });
 
       describe("Token Upgrade Initialization Check", function () {
-        let upgraded;
+        let upgraded, instance;
         before(async () => {
           const TokenV1 = await ethers.getContractFactory("TokenV1");
           const TokenV2 = await ethers.getContractFactory("TokenV1");
 
-          const instance = await upgrades.deployProxy(TokenV1, args, opts);
+          instance = await upgrades.deployProxy(TokenV1, args, opts);
+          
+          // Validate upgrade with archive data if available
+          if (tokenProxyAddress) {
+            console.log(`Validating upgrade from archived TokenV1 at ${tokenProxyAddress}`);
+            await upgrades.validateUpgrade(tokenProxyAddress, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          } else {
+            // Fall back to validating with current instance
+            console.log('No archived TokenV1 found, validating with current instance');
+            await upgrades.validateUpgrade(instance.address, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          }
+          
           upgraded = await upgrades.upgradeProxy(instance.address, TokenV2, {
             unsafeAllow: ['delegatecall']
           });
@@ -64,7 +99,7 @@ const opts = {
         });
 
         it("should update owner properly", async () => {
-          expect(await upgraded.getOwner()).to.equal(owner.address);
+          expect(await upgraded.getOwner()).to.equal(accounts.owner.address);
         });
       });
 
@@ -75,6 +110,21 @@ const opts = {
           const TokenV1 = await ethers.getContractFactory("TokenV1");
 
           instance = await upgrades.deployProxy(TokenV1, args, opts);
+          
+          // Validate upgrade with archive data if available
+          if (tokenProxyAddress) {
+            console.log(`Validating TokenV2 upgrade from archived TokenV1 at ${tokenProxyAddress}`);
+            await upgrades.validateUpgrade(tokenProxyAddress, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          } else {
+            // Fall back to validating with current instance
+            console.log('No archived TokenV1 found, validating with current instance');
+            await upgrades.validateUpgrade(instance.address, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          }
+          
           upgraded = await upgrades.upgradeProxy(instance.address, TokenV2, {
             unsafeAllow: ['delegatecall']
           });
@@ -89,12 +139,12 @@ const opts = {
         });
 
         it("should update owner properly", async () => {
-          expect(await upgraded.getOwner()).to.equal(owner.address);
+          expect(await upgraded.getOwner()).to.equal(accounts.owner.address);
         });
       });
 
       describe("Token Upgrade Memory Check (need to be masterMinter)", function () {
-        let oldContract, upgraded;
+        let oldContract;
         const initialBalance = 20;
 
         beforeEach(async () => {
@@ -118,73 +168,133 @@ const opts = {
             opts
           );
 
-          oldContract.setPermissionAdmin(permissionAdmin.address);
+          oldContract.setPermissionAdmin(accounts.security.address);
 
           await masterMinter.initializeMintController(oldContract.address, 4);
-          await masterMinter.connect(owner).setControllerAdmin(controllerAdmin.address);
-          await masterMinter.connect(controllerAdmin).configureController(controller1.address, minter1.address);
-          await masterMinter.connect(controller1).configureMinter(minter1.address, initialBalance);
+          await masterMinter.connect(accounts.owner).setControllerAdmin(accounts.mintingAdmin.address);
+          await masterMinter.connect(accounts.mintingAdmin).configureController(accounts.operations.address, accounts.operations.address);
+          await masterMinter.connect(accounts.operations).configureMinter(accounts.operations.address, initialBalance);
+        });
+
+        it("should validate upgrade compatibility with archive data if available", async () => {
+          const TokenV2 = await ethers.getContractFactory("TokenV1");
+          
+          // Validate upgrade with archive data if available
+          if (tokenProxyAddress) {
+            console.log(`Validating upgrade from archived TokenV1 at ${tokenProxyAddress}`);
+            await upgrades.validateUpgrade(tokenProxyAddress, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          } else {
+            // Fall back to validating with old contract
+            console.log('No archived TokenV1 found, validating with test contract');
+            await upgrades.validateUpgrade(oldContract.address, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          }
         });
 
         it("should update initial memory properly", async () => {
           const TokenV2 = await ethers.getContractFactory("TokenV1");
+          
+          // Validate upgrade with archive data if available
+          if (tokenProxyAddress) {
+            console.log(`Validating upgrade from archived TokenV1 at ${tokenProxyAddress}`);
+            await upgrades.validateUpgrade(tokenProxyAddress, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          } else {
+            // Fall back to validating with old contract
+            await upgrades.validateUpgrade(oldContract.address, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          }
+          
           upgraded = await upgrades.upgradeProxy(oldContract.address, TokenV2, {
             unsafeAllow: ['delegatecall']
           });
 
-          expect(await oldContract.getPermissionAdmin()).to.equal(permissionAdmin.address);
+          expect(await oldContract.getPermissionAdmin()).to.equal(accounts.security.address);
           expect(await upgraded.getPermissionAdmin()).to.equal(await oldContract.getPermissionAdmin());
 
           expect(await oldContract.totalSupply()).to.equal(0);
           expect(await upgraded.totalSupply()).to.equal(await oldContract.totalSupply());
 
-          expect(await oldContract.balanceOf(minter1.address)).to.equal(0);
-          expect(await upgraded.balanceOf(minter1.address)).to.equal(0);
+          expect(await oldContract.balanceOf(accounts.operations.address)).to.equal(0);
+          expect(await upgraded.balanceOf(accounts.operations.address)).to.equal(0);
         });
 
         it("should update mint memory properly", async () => {
           const mintAmount = 4;
-          const tx = await oldContract.connect(minter1).mint(minter1.address, mintAmount);
+          const tx = await oldContract.connect(accounts.operations).mint(accounts.operations.address, mintAmount);
           await tx.wait();
 
           const TokenV2 = await ethers.getContractFactory("TokenV1");
+          
+          // Validate upgrade with archive data if available
+          if (tokenProxyAddress) {
+            console.log(`Validating upgrade from archived TokenV1 at ${tokenProxyAddress}`);
+            await upgrades.validateUpgrade(tokenProxyAddress, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          } else {
+            // Fall back to validating with old contract
+            await upgrades.validateUpgrade(oldContract.address, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          }
+          
           upgraded = await upgrades.upgradeProxy(oldContract.address, TokenV2, {
             unsafeAllow: ['delegatecall']
           });
 
-          expect(await oldContract.getPermissionAdmin()).to.equal(permissionAdmin.address);
+          expect(await oldContract.getPermissionAdmin()).to.equal(accounts.security.address);
           expect(await upgraded.getPermissionAdmin()).to.equal(await oldContract.getPermissionAdmin());
 
           expect(await oldContract.totalSupply()).to.equal(mintAmount);
           expect(await upgraded.totalSupply()).to.equal(await oldContract.totalSupply());
 
-          expect(await oldContract.balanceOf(minter1.address)).to.equal(mintAmount);
-          expect(await upgraded.balanceOf(minter1.address)).to.equal(mintAmount);
+          expect(await oldContract.balanceOf(accounts.operations.address)).to.equal(mintAmount);
+          expect(await upgraded.balanceOf(accounts.operations.address)).to.equal(mintAmount);
         });
 
         it("should update burn memory properly", async () => {
           const mintAmount = 5;
-          const mintTx = await oldContract.connect(minter1).mint(minter1.address, mintAmount);
+          const mintTx = await oldContract.connect(accounts.operations).mint(accounts.operations.address, mintAmount);
           await mintTx.wait();
 
           const burnAmount = 4;
-          const burnTx = await oldContract.connect(minter1).burn(burnAmount);
+          const burnTx = await oldContract.connect(accounts.operations).burn(burnAmount);
           await burnTx.wait();
 
           const remainingAmount = mintAmount - burnAmount;
           const TokenV2 = await ethers.getContractFactory("TokenV1");
+          
+          // Validate upgrade with archive data if available
+          if (tokenProxyAddress) {
+            console.log(`Validating upgrade from archived TokenV1 at ${tokenProxyAddress}`);
+            await upgrades.validateUpgrade(tokenProxyAddress, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          } else {
+            // Fall back to validating with old contract
+            await upgrades.validateUpgrade(oldContract.address, TokenV2, {
+              unsafeAllow: ['delegatecall']
+            });
+          }
+          
           upgraded = await upgrades.upgradeProxy(oldContract.address, TokenV2, {
             unsafeAllow: ['delegatecall']
           });
 
-          expect(await oldContract.getPermissionAdmin()).to.equal(permissionAdmin.address);
+          expect(await oldContract.getPermissionAdmin()).to.equal(accounts.security.address);
           expect(await upgraded.getPermissionAdmin()).to.equal(await oldContract.getPermissionAdmin());
 
           expect(await oldContract.totalSupply()).to.equal(remainingAmount);
           expect(await upgraded.totalSupply()).to.equal(await oldContract.totalSupply());
 
-          expect(await oldContract.balanceOf(minter1.address)).to.equal(remainingAmount);
-          expect(await upgraded.balanceOf(minter1.address)).to.equal(remainingAmount);
+          expect(await oldContract.balanceOf(accounts.operations.address)).to.equal(remainingAmount);
+          expect(await upgraded.balanceOf(accounts.operations.address)).to.equal(remainingAmount);
         });
       });
     });

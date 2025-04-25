@@ -2,40 +2,97 @@ const { expect } = require("chai");
 const { ethers, deployments, network, upgrades } = require("hardhat");
 const { developmentChains } = require("../helper-hardhat-config");
 const { upgradeContract } = require("../scripts/test-upgrade");
+const { setupTestAccounts } = require("../helpers/test-helpers");
+const path = require("path");
+const fs = require("fs-extra");
 
 !developmentChains.includes(network.name)
   ? describe.skip
   : describe("Full Upgrade Integration Test", function () {
-      let tokenv1, masterMinter, owner, minter, user;
+      let tokenv1, masterMinter;
+      let accounts;
+      let tokenProxyAddress, masterMinterProxyAddress;
       const initialMintAmount = 1000;
 
       before(async () => {
         await deployments.fixture(["all"]);
         
-        const accounts = await ethers.getSigners();
-        owner = accounts[0];
-        minter = accounts[1];
-        user = accounts[2];
+        const signers = await ethers.getSigners();
+        accounts = setupTestAccounts(signers);
 
         // Get deployed contract instances
         const tokenv1Deployment = await deployments.get("TokenV1");
-        tokenv1 = await ethers.getContractAt("TokenV1", tokenv1Deployment.address, owner);
+        tokenv1 = await ethers.getContractAt("TokenV1", tokenv1Deployment.address, accounts.owner);
 
         const masterMinterDeployment = await deployments.get("MasterMinter");
-        masterMinter = await ethers.getContractAt("MasterMinter", masterMinterDeployment.address, owner);
+        masterMinter = await ethers.getContractAt("MasterMinter", masterMinterDeployment.address, accounts.owner);
         
         // Configure controller and minter
-        await masterMinter.setControllerAdmin(owner.address);
-        await masterMinter.configureController(owner.address, minter.address);
-        await masterMinter.configureMinter(minter.address, initialMintAmount);
+        await masterMinter.setControllerAdmin(accounts.owner.address);
+        await masterMinter.configureController(accounts.owner.address, accounts.minter.address);
+        await masterMinter.configureMinter(accounts.minter.address, initialMintAmount);
         
         // Mint some tokens before upgrade
-        await tokenv1.connect(minter).mint(minter.address, 500);
+        await tokenv1.connect(accounts.minter).mint(accounts.minter.address, 500);
+        
+        // Try to load archive data for previous deployments
+        const archiveDir = path.join(
+          __dirname,
+          '..',
+          'deployments',
+          'archive',
+          'v1',
+          network.name
+        );
+        
+        try {
+          if (fs.existsSync(path.join(archiveDir, 'TokenV1.json'))) {
+            const tokenArchiveData = require(path.join(archiveDir, 'TokenV1.json'));
+            tokenProxyAddress = tokenArchiveData.proxyAddress;
+            console.log(`Found archived TokenV1 deployment at: ${tokenProxyAddress}`);
+          }
+          
+          if (fs.existsSync(path.join(archiveDir, 'MasterMinter.json'))) {
+            const masterMinterArchiveData = require(path.join(archiveDir, 'MasterMinter.json'));
+            masterMinterProxyAddress = masterMinterArchiveData.proxyAddress;
+            console.log(`Found archived MasterMinter deployment at: ${masterMinterProxyAddress}`);
+          }
+        } catch (error) {
+          console.log(`Archive data not found or could not be loaded: ${error.message}`);
+        }
+      });
+
+      it("should validate that TokenV1 upgrade is storage compatible using archive data if available", async () => {
+        // Get the TokenV1 factory for validation
+        const TokenV2 = await ethers.getContractFactory("TokenV1");
+        
+        // Determine which address to use for validation
+        const targetAddress = tokenProxyAddress || tokenv1.address;
+        console.log(`Validating TokenV1 upgrade from ${targetAddress}`);
+        
+        // Validate the upgrade will be safe
+        await upgrades.validateUpgrade(targetAddress, TokenV2, {
+          unsafeAllow: ['delegatecall']
+        });
+      });
+      
+      it("should validate that MasterMinter upgrade is storage compatible using archive data if available", async () => {
+        // Get the MasterMinter factory for validation
+        const MasterMinterV2 = await ethers.getContractFactory("MasterMinter");
+        
+        // Determine which address to use for validation
+        const targetAddress = masterMinterProxyAddress || masterMinter.address;
+        console.log(`Validating MasterMinter upgrade from ${targetAddress}`);
+        
+        // Validate the upgrade will be safe
+        await upgrades.validateUpgrade(targetAddress, MasterMinterV2, {
+          unsafeAllow: ['delegatecall']
+        });
       });
 
       it("should maintain state when upgrading TokenV1", async () => {
         // Check initial state
-        const initialBalance = await tokenv1.balanceOf(minter.address);
+        const initialBalance = await tokenv1.balanceOf(accounts.minter.address);
         expect(initialBalance).to.equal(500);
         
         // Get the TokenV2 factory (for this test we're using the same contract as an example)
@@ -46,17 +103,17 @@ const { upgradeContract } = require("../scripts/test-upgrade");
         const upgradedToken = result.proxy;
         
         // Verify state is maintained
-        const postUpgradeBalance = await upgradedToken.balanceOf(minter.address);
+        const postUpgradeBalance = await upgradedToken.balanceOf(accounts.minter.address);
         expect(postUpgradeBalance).to.equal(initialBalance);
         
         // Verify we can still use the contract
-        await upgradedToken.connect(minter).transfer(user.address, 100);
-        expect(await upgradedToken.balanceOf(user.address)).to.equal(100);
+        await upgradedToken.connect(accounts.minter).transfer(accounts.user1.address, 100);
+        expect(await upgradedToken.balanceOf(accounts.user1.address)).to.equal(100);
       });
 
       it("should maintain state when upgrading MasterMinter", async () => {
         // Check initial state - minter should be configured
-        expect(await masterMinter.isMinter(minter.address)).to.equal(true);
+        expect(await masterMinter.isMinter(accounts.minter.address)).to.equal(true);
         
         // Get the factory (using same contract as example)
         const MasterMinterV2 = await ethers.getContractFactory("MasterMinter");
@@ -66,12 +123,12 @@ const { upgradeContract } = require("../scripts/test-upgrade");
         const upgradedMasterMinter = result.proxy;
         
         // Verify state is maintained
-        expect(await upgradedMasterMinter.isMinter(minter.address)).to.equal(true);
+        expect(await upgradedMasterMinter.isMinter(accounts.minter.address)).to.equal(true);
         
         // Verify we can still use the contract
-        expect(await tokenv1.minterAllowance(minter.address)).to.equal(500); // 1000 initial - 500 minted
-        await upgradedMasterMinter.connect(owner).configureMinter(minter.address, 2000);
-        expect(await tokenv1.minterAllowance(minter.address)).to.equal(2000);
+        expect(await tokenv1.minterAllowance(accounts.minter.address)).to.equal(500); // 1000 initial - 500 minted
+        await upgradedMasterMinter.connect(accounts.owner).configureMinter(accounts.minter.address, 2000);
+        expect(await tokenv1.minterAllowance(accounts.minter.address)).to.equal(2000);
       });
 
       it("should handle a full end-to-end scenario with both contracts upgraded", async () => {
@@ -87,15 +144,15 @@ const { upgradeContract } = require("../scripts/test-upgrade");
         const upgradedMasterMinter = minterResult.proxy;
         
         // Verify the system still functions correctly
-        await upgradedMasterMinter.configureMinter(minter.address, 3000);
-        await upgradedToken.connect(minter).mint(minter.address, 1000);
+        await upgradedMasterMinter.configureMinter(accounts.minter.address, 3000);
+        await upgradedToken.connect(accounts.minter).mint(accounts.minter.address, 1000);
         
         // Check balances
-        const finalBalance = await upgradedToken.balanceOf(minter.address);
+        const finalBalance = await upgradedToken.balanceOf(accounts.minter.address);
         expect(finalBalance).to.be.gt(1000); // Should be at least 1000 (the new mint)
         
         // Verify transfer still works
-        await upgradedToken.connect(minter).transfer(user.address, 200);
-        expect(await upgradedToken.balanceOf(user.address)).to.equal(300); // 100 from previous + 200 new
+        await upgradedToken.connect(accounts.minter).transfer(accounts.user1.address, 200);
+        expect(await upgradedToken.balanceOf(accounts.user1.address)).to.equal(300); // 100 from previous + 200 new
       });
     }); 
