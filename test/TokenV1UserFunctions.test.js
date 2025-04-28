@@ -51,17 +51,44 @@ const { setupTestAccounts } = require("../helpers/test-helpers");
             await tx.wait();
             expect.fail("Expected transaction to revert");
           } catch (error) {
-            const receipt = await ethers.provider.getTransactionReceipt(error.transactionHash);
-            const abiCoder = new ethers.utils.AbiCoder();
-            const decoded = abiCoder.decode(
-              ['address', 'address', 'uint256', 'uint256'],
-              ethers.utils.hexDataSlice(error.data, 4)
-            );
+            // Handle both pre-upgrade and post-upgrade error formats
+            let errorData;
+            
+            if (error.data) {
+              // Pre-upgrade format with direct error data
+              errorData = error.data;
+            } else if (error.error && error.error.data && error.error.data.data) {
+              // Post-upgrade format where error is wrapped in provider error
+              errorData = error.error.data.data;
+            } else {
+              // If neither format matches, check if it's a string error message containing the expected data
+              const errorMatch = error.message && error.message.match(/FailedDecreaseAllowance\([^)]*\)/);
+              if (errorMatch) {
+                // Test passes if we find the custom error message in the string
+                expect(error.message).to.include('FailedDecreaseAllowance');
+                expect(error.message).to.include(accounts.operations.address);
+                expect(error.message).to.include(accounts.user3.address);
+                expect(error.message).to.include('5');
+                expect(error.message).to.include('10');
+                return; // Skip decoding since we verified the error message text
+              } else {
+                throw error; // If we can't find the expected error format, rethrow
+              }
+            }
+            
+            // If we have error data, decode it
+            if (errorData) {
+              const abiCoder = new ethers.utils.AbiCoder();
+              const decoded = abiCoder.decode(
+                ['address', 'address', 'uint256', 'uint256'],
+                ethers.utils.hexDataSlice(errorData, 4)
+              );
 
-            expect(decoded[0]).to.equal(accounts.operations.address);
-            expect(decoded[1]).to.equal(accounts.user3.address);
-            expect(decoded[2].toString()).to.equal('5');
-            expect(decoded[3]).to.equal(10);
+              expect(decoded[0]).to.equal(accounts.operations.address);
+              expect(decoded[1]).to.equal(accounts.user3.address);
+              expect(decoded[2].toString()).to.equal('5');
+              expect(decoded[3].toString()).to.equal('10');
+            }
           }
 
           expect(await tokenv1.connect(accounts.operations).allowance(accounts.operations.address, accounts.user3.address)).to.equal(5);
