@@ -1,0 +1,24 @@
+name: CI
+
+permissions:
+  id-token: write
+  contents: read
+  checks: write
+  packages: read
+  statuses: write
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: AeduRunner
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
+    env:
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY_DEV || secrets.ETHERSCAN_API_KEY_PROD }}
+      REPORT_GAS:        ${{ secrets.REPORT_GAS_DEV      || secrets.REPORT_GAS_PROD }}
+      NODE_ENV:          test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/hardhat-setup
+      - run: npm run unit
+      - run: npm run coverage

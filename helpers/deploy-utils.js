@@ -60,12 +60,14 @@ async function verify(address, hre, constructorArgs = [], contractPath) {
 // Throw-on-missing env-var helper -------------------------------------------
 function requireEnv(varName) {
     const value = process.env[varName];
-    if (!value || value.trim() === "") {
-        throw new Error(
-            `[config] Environment variable ${varName} is required but not set.`
-        );
+    if (value && value.trim() !== "") return value.trim();
+
+    // Allow missing values *at compile-time*; enforce at runtime.
+    if (process.env.HARDHAT_NETWORK === "hardhat" || process.env.NODE_ENV === "test") {
+        return "";
     }
-    return value.trim();
+
+    throw new Error(`[config] Environment variable ${varName} is required but not set.`);
 }
 
 module.exports = { confirmationsFor, waitTx, verify, requireEnv };

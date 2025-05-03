@@ -30,7 +30,7 @@ const NETWORK_VAULTS = {
 };
 
 const ETHERSCAN_API_KEY = requireEnv("ETHERSCAN_API_KEY");
-const REPORT_GAS = requireEnv("REPORT_GAS");
+const REPORT_GAS = requireEnv("REPORT_GAS") === "true";
 
 const DEPLOY_METHOD = process.env.DEPLOY_METHOD || "privatekey"; // default to private key if not specified
 
@@ -90,7 +90,6 @@ module.exports = {
   gasReporter: {
     enabled: REPORT_GAS,
     currency: "USD",
-    outputFile: "gas-report.txt",
     noColors: true,
   },
   solidity: {

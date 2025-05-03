@@ -1,0 +1,17 @@
+name: hardhat-setup
+description: Install Node, restore NPM cache, run `npm ci`, compile
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "20.18.x"
+        cache: npm
+    - run: npm ci
+      shell: bash
+    - name: Compile (local hardhat network)
+      run: npm run compile
+      shell: bash
+      env:
+        HARDHAT_NETWORK: hardhat
+        NODE_ENV: test
