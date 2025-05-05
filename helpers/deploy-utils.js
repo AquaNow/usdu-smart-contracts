@@ -70,4 +70,9 @@ function requireEnv(varName) {
     throw new Error(`[config] Environment variable ${varName} is required but not set.`);
 }
 
-module.exports = { confirmationsFor, waitTx, verify, requireEnv };
+// Get environment variable with fallback -----------------------------------
+function getEnv(name, fallback = undefined) {
+    return process.env[name] ?? fallback;
+}
+
+module.exports = { confirmationsFor, waitTx, verify, requireEnv, getEnv };

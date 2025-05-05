@@ -7,43 +7,43 @@ require("@fireblocks/hardhat-fireblocks");
 require("hardhat-gas-reporter");
 require("hardhat-deploy");
 require("dotenv").config();
-const { requireEnv } = require("./helpers/deploy-utils");
+const { requireEnv, getEnv } = require("./helpers/deploy-utils");
 
-const MAINNET_RPC_URL = requireEnv("MAINNET_RPC_URL");
-const SEPOLIA_RPC_URL = requireEnv("SEPOLIA_RPC_URL");
-const LOCALHOST_RPC_URL = process.env.LOCALHOST_RPC_URL || "http://localhost:8545";
+const MAINNET_RPC_URL = getEnv("MAINNET_RPC_URL");
+const SEPOLIA_RPC_URL = getEnv("SEPOLIA_RPC_URL");
+const LOCALHOST_RPC_URL = getEnv("LOCALHOST_RPC_URL", "http://localhost:8545");
 
-// Fireblocks creds — one pair per network
-const FB_API_KEYS = {
-  mainnet: requireEnv("FIREBLOCKS_API_KEY_MAINNET"),
-  sepolia: requireEnv("FIREBLOCKS_API_KEY_SEPOLIA"),
-};
-const FB_PK_PATHS = {
-  mainnet: requireEnv("FIREBLOCKS_PK_PATH_MAINNET"),
-  sepolia: requireEnv("FIREBLOCKS_PK_PATH_SEPOLIA"),
-};
-
-// vault order: 0 owner, 1 mintingAdmin, 2 operations, 3 security, 4 portal, 5 treasury
-const NETWORK_VAULTS = {
-  sepolia: requireEnv("VAULT_IDS_SEPOLIA").split(","),
-  mainnet: requireEnv("VAULT_IDS_MAINNET").split(","),
+const FB_KEY_ENV = {
+  mainnet: {
+    apiKey: "FIREBLOCKS_API_KEY_PROD",
+    pkPath: "FIREBLOCKS_PK_PATH_PROD",
+    vaultIds: "FIREBLOCKS_VAULT_IDS_PROD",
+  },
+  sepolia: {
+    apiKey: "FIREBLOCKS_API_KEY_DEV",
+    pkPath: "FIREBLOCKS_PK_PATH_DEV",
+    vaultIds: "FIREBLOCKS_VAULT_IDS_DEV",
+  },
 };
 
 const ETHERSCAN_API_KEY = requireEnv("ETHERSCAN_API_KEY");
-const REPORT_GAS = requireEnv("REPORT_GAS") === "true";
+const REPORT_GAS = getEnv("REPORT_GAS") === "true";
+const DEPLOY_METHOD = getEnv("DEPLOY_METHOD", "privatekey");
 
-const DEPLOY_METHOD = process.env.DEPLOY_METHOD || "privatekey"; // default to private key if not specified
+function getNetworkConfig(url, chainId, net, privateKey = "0x") {
+  if (DEPLOY_METHOD === "fireblocks" && process.env.HARDHAT_NETWORK === net) {
+    const apiKey = requireEnv(FB_KEY_ENV[net].apiKey);
+    const pkPath = requireEnv(FB_KEY_ENV[net].pkPath);
+    const vaultIds = requireEnv(FB_KEY_ENV[net].vaultIds).split(",");
 
-function getNetworkConfig(url, chainId, fireblocksPrivateKeyPath, fireblocksApiKey, vaultAccountIds, privateKey = "0x") {
-  if (DEPLOY_METHOD === "fireblocks") {
     return {
       url,
       saveDeployments: true,
       chainId,
       fireblocks: {
-        privateKey: fireblocksPrivateKeyPath,
-        apiKey: fireblocksApiKey,
-        vaultAccountIds,
+        privateKey: pkPath,
+        apiKey: apiKey,
+        vaultAccountIds: vaultIds,
       },
       accounts: [],
     };
@@ -69,23 +69,23 @@ module.exports = {
       url: LOCALHOST_RPC_URL,
       chainId: 31337
     },
-    sepolia: getNetworkConfig(SEPOLIA_RPC_URL, 11155111, FB_PK_PATHS.sepolia, FB_API_KEYS.sepolia, NETWORK_VAULTS.sepolia),
-    mainnet: getNetworkConfig(MAINNET_RPC_URL, 1, FB_PK_PATHS.mainnet, FB_API_KEYS.mainnet, NETWORK_VAULTS.mainnet),
+    sepolia: getNetworkConfig(SEPOLIA_RPC_URL, 11155111, "sepolia"),
+    mainnet: getNetworkConfig(MAINNET_RPC_URL, 1, "mainnet"),
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
   },
   namedAccounts: {
-    deployer:       { default: 0 },
-    mintingAdmin:   { default: 1 },
-    operations:     { default: 2 },
-    security:       { default: 3 },
-    minter:         { default: 2 },
-    blacklister:    { default: 3 },
-    pauser:         { default: 3 },
-    rescuer:        { default: 3 },
-    portal:         { default: 4 },
-    treasury:       { default: 5 },
+    deployer: { default: 0 },
+    mintingAdmin: { default: 1 },
+    operations: { default: 2 },
+    security: { default: 3 },
+    minter: { default: 2 },
+    blacklister: { default: 3 },
+    pauser: { default: 3 },
+    rescuer: { default: 3 },
+    portal: { default: 4 },
+    treasury: { default: 5 },
   },
   gasReporter: {
     enabled: REPORT_GAS,
