@@ -1,0 +1,99 @@
+name: Deploy / Upgrade Contracts
+
+permissions:
+  id-token: write
+  contents: read
+  checks: write
+  packages: read
+  statuses: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Target network (mainnet deploys only from main branch)"
+        type: choice
+        options: [sepolia, mainnet]
+        default: sepolia
+      tag:
+        description: "Hardhat --tags value (masterminter | token)"
+        type: choice
+        options: [masterminter, token]
+        default: token
+      commitSha:
+        description: "Restore deployment artefacts from this commit (optional)"
+        type: string
+        required: false
+
+jobs:
+  deploy:
+    # ─── Branch / network guard ────────────────────────────────────────────
+    if: |
+      (github.ref == 'refs/heads/develop' && github.event.inputs.network == 'sepolia') ||
+      (github.ref == 'refs/heads/main'    && contains(fromJSON('["sepolia","mainnet"]'), github.event.inputs.network))
+
+    runs-on: AeduRunner
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
+
+    env:
+      # RPC & global env-vars ------------------------------------------------
+      SEPOLIA_RPC_URL:  ${{ secrets.SEPOLIA_RPC_URL }}
+      MAINNET_RPC_URL:  ${{ secrets.MAINNET_RPC_URL }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+      REPORT_GAS:        false
+      DEPLOY_METHOD:     fireblocks
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/hardhat-setup   # installs Node & runs `npm ci`
+
+      - uses: ./.github/actions/aws-setup
+        with:
+          role: ${{ github.ref == 'refs/heads/main' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
+
+      # ─── Fireblocks credentials (decode base64 into temp key file) ───────
+      - name: Prepare Fireblocks credentials
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.network }}" == "mainnet" ]]; then
+            echo "FIREBLOCKS_API_KEY_PROD=${{ secrets.FIREBLOCKS_API_KEY_PROD }}" >> $GITHUB_ENV
+            echo "${{ secrets.FIREBLOCKS_PK_PROD_B64 }}" | base64 -d > $RUNNER_TEMP/fb.key
+            echo "FIREBLOCKS_PK_PATH_PROD=$RUNNER_TEMP/fb.key" >> $GITHUB_ENV
+            echo "FIREBLOCKS_VAULT_IDS_PROD=${{ secrets.FIREBLOCKS_VAULT_IDS_PROD }}" >> $GITHUB_ENV
+          else
+            echo "FIREBLOCKS_API_KEY_DEV=${{ secrets.FIREBLOCKS_API_KEY_DEV }}" >> $GITHUB_ENV
+            echo "${{ secrets.FIREBLOCKS_PK_DEV_B64 }}" | base64 -d > $RUNNER_TEMP/fb.key
+            echo "FIREBLOCKS_PK_PATH_DEV=$RUNNER_TEMP/fb.key" >> $GITHUB_ENV
+            echo "FIREBLOCKS_VAULT_IDS_DEV=${{ secrets.FIREBLOCKS_VAULT_IDS_DEV }}" >> $GITHUB_ENV
+          fi
+          chmod 600 $RUNNER_TEMP/fb.key
+
+      # ─── Restore previous deployments (optional) ─────────────────────────
+      - name: Restore deployments from S3
+        if: ${{ github.event.inputs.commitSha != '' }}
+        shell: bash
+        run: |
+          BUCKET=${{ github.ref == 'refs/heads/main' && secrets.S3_BUCKET_PROD || secrets.S3_BUCKET_DEV }}
+          aws s3 cp \
+            s3://$BUCKET/${{ github.event.inputs.network }}/${{ github.event.inputs.commitSha }}/archive-${{ github.event.inputs.network }}.tgz \
+            prev.tgz
+          tar -xzf prev.tgz
+          SNAP=$(ls -1 deployments/archive | sort | tail -n1)
+          mkdir -p deployments/${{ github.event.inputs.network }}
+          cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/*.json \
+            deployments/${{ github.event.inputs.network }}/
+
+      # ─── Deploy / upgrade ────────────────────────────────────────────────
+      - name: Deploy / upgrade
+        run: npm run deploy -- ${{ github.event.inputs.network }} --tags ${{ github.event.inputs.tag }}
+
+      # ─── Archive & upload artefacts to S3 ────────────────────────────────
+      - name: Archive & upload to S3
+        shell: bash
+        run: |
+          npm run archive -- ${{ github.event.inputs.network }}
+          tar -czf archive-${{ github.event.inputs.network }}.tgz deployments/archive
+          BUCKET=${{ github.ref == 'refs/heads/main' && secrets.S3_BUCKET_PROD || secrets.S3_BUCKET_DEV }}
+          aws s3 cp archive-${{ github.event.inputs.network }}.tgz \
+            s3://$BUCKET/${{ github.event.inputs.network }}/${{ github.sha }}/
