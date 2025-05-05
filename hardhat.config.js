@@ -9,8 +9,8 @@ require("hardhat-deploy");
 require("dotenv").config();
 const { requireEnv, getEnv } = require("./helpers/deploy-utils");
 
-const MAINNET_RPC_URL = getEnv("MAINNET_RPC_URL");
-const SEPOLIA_RPC_URL = getEnv("SEPOLIA_RPC_URL");
+const MAINNET_RPC_URL = getEnv("MAINNET_RPC_URL", "https://mainnet.infura.io/v3/placeholder");
+const SEPOLIA_RPC_URL = getEnv("SEPOLIA_RPC_URL", "https://sepolia.infura.io/v3/placeholder");
 const LOCALHOST_RPC_URL = getEnv("LOCALHOST_RPC_URL", "http://localhost:8545");
 
 const FB_KEY_ENV = {
@@ -27,7 +27,7 @@ const FB_KEY_ENV = {
 };
 
 const ETHERSCAN_API_KEY = requireEnv("ETHERSCAN_API_KEY");
-const REPORT_GAS = getEnv("REPORT_GAS") === "true";
+const REPORT_GAS = getEnv("REPORT_GAS", false) === "true";
 const DEPLOY_METHOD = getEnv("DEPLOY_METHOD", "privatekey");
 
 function getNetworkConfig(url, chainId, net, privateKey = "0x") {
