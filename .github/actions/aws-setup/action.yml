@@ -4,11 +4,14 @@ inputs:
   role:
     description: IAM role ARN
     required: true
+  region:
+    description: AWS region (optional; falls back to env.AWS_REGION)
+    required: false
 runs:
   using: composite
   steps:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.role }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region:        ${{ inputs.region || env.AWS_REGION }}
         role-session-name: gha-${{ github.run_id }}
