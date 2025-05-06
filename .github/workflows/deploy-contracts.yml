@@ -84,8 +84,22 @@ jobs:
           mkdir -p deployments/${{ github.event.inputs.network }}
           cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/*.json \
             deployments/${{ github.event.inputs.network }}/
-          cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/.chainId \
-             deployments/${{ github.event.inputs.network }}/
+          # ensure .chainId is correct
+          case "${{ github.event.inputs.network }}" in
+            sepolia)  echo 11155111 > deployments/${{ github.event.inputs.network }}/.chainId ;;
+            mainnet)  echo 1        > deployments/${{ github.event.inputs.network }}/.chainId ;;
+          esac
+
+      # ─── Ensure .chainId matches the chosen network ────────────────
+      - name: Write correct chainId marker
+        shell: bash
+        run: |
+          case "${{ github.event.inputs.network }}" in
+            sepolia)  ID=11155111 ;;
+            mainnet)  ID=1 ;;
+            *)        echo "Unknown network" ; exit 1 ;;
+          esac
+          echo "$ID" > deployments/${{ github.event.inputs.network }}/.chainId
 
       # ─── Deploy / upgrade ────────────────────────────────────────────────
       - name: Deploy / upgrade
