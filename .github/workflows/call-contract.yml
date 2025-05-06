@@ -50,6 +50,7 @@ jobs:
       AWS_REGION:       ${{ vars.AWS_REGION }}
       SEPOLIA_RPC_URL:  ${{ secrets.SEPOLIA_RPC_URL }}
       MAINNET_RPC_URL:  ${{ secrets.MAINNET_RPC_URL }}
+      DEPLOY_METHOD:     fireblocks
 
     steps:
       - uses: actions/checkout@v4
