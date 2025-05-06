@@ -12,11 +12,11 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: AeduRunner
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'PROD' || 'DEV' }}
     env:
       AWS_REGION:         ${{ vars.AWS_REGION }}
-      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY_DEV || secrets.ETHERSCAN_API_KEY_PROD }}
-      REPORT_GAS:        ${{ secrets.REPORT_GAS_DEV      || secrets.REPORT_GAS_PROD }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+      REPORT_GAS:        ${{ secrets.REPORT_GAS }}
       NODE_ENV:          test
     steps:
       - uses: actions/checkout@v4
