@@ -106,4 +106,7 @@ jobs:
             --from     ${{ github.event.inputs.from }}
         env:
           HARDHAT_NETWORK: ${{ github.event.inputs.network }}
-      - run: shred -u "$RUNNER_TEMP/fb.key"
+
+      - name: Clean up Fireblocks credentials
+        shell: bash
+        run: shred -u "$RUNNER_TEMP/fb.key"

@@ -32,7 +32,7 @@ const FB_KEY_ENV = {
   },
 };
 
-const ETHERSCAN_API_KEY = requireEnv("ETHERSCAN_API_KEY");
+const ETHERSCAN_API_KEY = getEnv("ETHERSCAN_API_KEY", "placeholder");
 const REPORT_GAS = getEnv("REPORT_GAS", false) === "true";
 const DEPLOY_METHOD = getEnv("DEPLOY_METHOD", "privatekey");
 
