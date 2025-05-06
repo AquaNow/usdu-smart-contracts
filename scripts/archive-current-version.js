@@ -86,6 +86,8 @@ async function main() {
     { spaces: 2 },
   );
 
+  await fs.writeFile(path.join(archiveDir, ".chainId"), network.config.chainId.toString());
+  
   console.log(`🎉 Snapshot saved to ${archiveDir}`);
 }
 

@@ -84,6 +84,8 @@ jobs:
           mkdir -p deployments/${{ github.event.inputs.network }}
           cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/*.json \
             deployments/${{ github.event.inputs.network }}/
+          cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/.chainId \
+             deployments/${{ github.event.inputs.network }}/
 
       # ─── Deploy / upgrade ────────────────────────────────────────────────
       - name: Deploy / upgrade
