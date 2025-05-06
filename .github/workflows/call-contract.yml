@@ -1,0 +1,87 @@
+name: Call Contract Function
+
+permissions:
+  id-token: write
+  contents: read
+  checks: write
+  packages: read
+  statuses: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:  { type: choice, options: [sepolia, mainnet], default: sepolia }
+      target:   { type: choice, options: [MasterMinter, TokenV1], default: MasterMinter }
+      fn:       { required: true }
+      args:     { required: false }
+      from:     { default: deployer }
+      commitSha:{ required: false }
+
+jobs:
+  call:
+    if: |
+      (github.ref == 'refs/heads/develop' && github.event.inputs.network == 'sepolia') ||
+      (github.ref == 'refs/heads/main'    && contains(fromJSON('["sepolia","mainnet"]'), github.event.inputs.network))
+    runs-on: AeduRunner
+    environment: ${{ github.ref == 'refs/heads.main' && 'PROD' || 'DEV' }}
+
+    env:
+      SEPOLIA_RPC_URL:  ${{ secrets.SEPOLIA_RPC_URL }}
+      MAINNET_RPC_URL:  ${{ secrets.MAINNET_RPC_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.18.x"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - uses: ./.github/actions/aws-setup
+        with:
+          role: ${{ github.ref == 'refs/heads.main' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
+
+      # ─── Fireblocks credentials (decode base64 into temp key file) ───────
+      - name: Prepare Fireblocks credentials
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.network }}" == "mainnet" ]]; then
+            echo "FIREBLOCKS_API_KEY_PROD=${{ secrets.FIREBLOCKS_API_KEY_PROD }}" >> $GITHUB_ENV
+            echo "${{ secrets.FIREBLOCKS_PK_PROD_B64 }}" | base64 -d > $RUNNER_TEMP/fb.key
+            echo "FIREBLOCKS_PK_PATH_PROD=$RUNNER_TEMP/fb.key" >> $GITHUB_ENV
+            echo "FIREBLOCKS_VAULT_IDS_PROD=${{ secrets.FIREBLOCKS_VAULT_IDS_PROD }}" >> $GITHUB_ENV
+          else
+            echo "FIREBLOCKS_API_KEY_DEV=${{ secrets.FIREBLOCKS_API_KEY_DEV }}" >> $GITHUB_ENV
+            echo "${{ secrets.FIREBLOCKS_PK_DEV_B64 }}" | base64 -d > $RUNNER_TEMP/fb.key
+            echo "FIREBLOCKS_PK_PATH_DEV=$RUNNER_TEMP/fb.key" >> $GITHUB_ENV
+            echo "FIREBLOCKS_VAULT_IDS_DEV=${{ secrets.FIREBLOCKS_VAULT_IDS_DEV }}" >> $GITHUB_ENV
+          fi
+          chmod 600 $RUNNER_TEMP/fb.key
+
+      # ─── Restore previous deployments (optional) ─────────────────────────
+      - name: Download deployments archive from S3
+        shell: bash
+        run: |
+          SHA=${{ github.event.inputs.commitSha || github.sha }}
+          BUCKET=${{ github.ref == 'refs/heads/main' && secrets.S3_BUCKET_PROD || secrets.S3_BUCKET_DEV }}
+          aws s3 cp \
+            s3://$BUCKET/${{ github.event.inputs.network }}/$SHA/archive-${{ github.event.inputs.network }}.tgz \
+            prev.tgz
+          tar -xzf prev.tgz
+          SNAP=$(ls -1 deployments/archive | sort | tail -n1)
+          mkdir -p deployments/${{ github.event.inputs.network }}
+          cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/*.json \
+            deployments/${{ github.event.inputs.network }}/
+
+      - name: Invoke
+        shell: bash
+        run: |
+          node scripts/invoke.js \
+            --network  ${{ github.event.inputs.network }} \
+            --target   ${{ github.event.inputs.target }} \
+            --fn       ${{ github.event.inputs.fn }} \
+            --args     "${{ github.event.inputs.args }}" \
+            --from     ${{ github.event.inputs.from }}
+        env:
+          HARDHAT_NETWORK: ${{ github.event.inputs.network }}
+      - run: shred -u "$RUNNER_TEMP/fb.key"
