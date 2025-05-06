@@ -10,12 +10,33 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      network:  { type: choice, options: [sepolia, mainnet], default: sepolia }
-      target:   { type: choice, options: [MasterMinter, TokenV1], default: MasterMinter }
-      fn:       { required: true }
-      args:     { required: false }
-      from:     { default: deployer }
-      commitSha:{ required: false }
+      network:
+        description: Target network
+        type: choice
+        options: [sepolia, mainnet]
+        default: sepolia
+      target:
+        description: Contract
+        type: choice
+        options: [MasterMinter, TokenV1]
+        default: MasterMinter
+      fn:
+        description: Function name to call
+        type: string
+        required: true
+      args:
+        description: Comma-separated args (optional)
+        type: string
+        required: false
+      from:
+        description: Named signer (deploy-scripts’ `namedAccounts`)
+        type: choice
+        options: [deployer, mintingAdmin, operations, security, minter, blacklister, pauser, rescuer, portal, treasury]
+        default: deployer
+      commitSha:
+        description: Commit whose deployments archive to use (optional)
+        type: string
+        required: false
 
 jobs:
   call:
@@ -26,6 +47,7 @@ jobs:
     environment: ${{ github.ref == 'refs/heads.main' && 'PROD' || 'DEV' }}
 
     env:
+      AWS_REGION:       ${{ vars.AWS_REGION }}
       SEPOLIA_RPC_URL:  ${{ secrets.SEPOLIA_RPC_URL }}
       MAINNET_RPC_URL:  ${{ secrets.MAINNET_RPC_URL }}
 
