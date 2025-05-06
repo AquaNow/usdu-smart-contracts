@@ -9,6 +9,12 @@ require("hardhat-deploy");
 require("dotenv").config();
 const { requireEnv, getEnv } = require("./helpers/deploy-utils");
 
+// Get network from command line arguments
+const argvNet = (() => {
+  const i = process.argv.indexOf("--network");
+  return i !== -1 && i + 1 < process.argv.length ? process.argv[i + 1] : undefined;
+})();
+
 const MAINNET_RPC_URL = getEnv("MAINNET_RPC_URL", "https://mainnet.infura.io/v3/placeholder");
 const SEPOLIA_RPC_URL = getEnv("SEPOLIA_RPC_URL", "https://sepolia.infura.io/v3/placeholder");
 const LOCALHOST_RPC_URL = getEnv("LOCALHOST_RPC_URL", "http://localhost:8545");
@@ -31,7 +37,7 @@ const REPORT_GAS = getEnv("REPORT_GAS", false) === "true";
 const DEPLOY_METHOD = getEnv("DEPLOY_METHOD", "privatekey");
 
 function getNetworkConfig(url, chainId, net, privateKey = "0x") {
-  if (DEPLOY_METHOD === "fireblocks" && process.env.HARDHAT_NETWORK === net) {
+  if (DEPLOY_METHOD === "fireblocks" && argvNet === net) {
     const apiKey = requireEnv(FB_KEY_ENV[net].apiKey);
     const pkPath = requireEnv(FB_KEY_ENV[net].pkPath);
     const vaultIds = requireEnv(FB_KEY_ENV[net].vaultIds).split(",");
