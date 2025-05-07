@@ -16,10 +16,10 @@ on:
         options: [sepolia, mainnet]
         default: sepolia
       tag:
-        description: "Hardhat --tags value (masterminter | token)"
+        description: "Hardhat --tags value (masterminter | token | masterminter-token)"
         type: choice
-        options: [masterminter, token]
-        default: token
+        options: [masterminter, token, masterminter-token]
+        default: masterminter
       commitSha:
         description: "Restore deployment artefacts from this commit (optional)"
         type: string
@@ -85,10 +85,19 @@ jobs:
           cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/*.json \
             deployments/${{ github.event.inputs.network }}/
           # ensure .chainId is correct
+          echo "Ensure .chainId is correct"
           case "${{ github.event.inputs.network }}" in
             sepolia)  echo 11155111 > deployments/${{ github.event.inputs.network }}/.chainId ;;
             mainnet)  echo 1        > deployments/${{ github.event.inputs.network }}/.chainId ;;
           esac
+          # restore .openzeppelin/manifest.json
+          echo "✓ Trying to restore OpenZeppelin manifest"
+          if [[ -f deployments/archive/$SNAP/${{ github.event.inputs.network }}/.openzeppelin/${{ github.event.inputs.network }}.json ]]; then
+            echo "✓ OpenZeppelin manifest restored"
+            mkdir -p deployments/${{ github.event.inputs.network }}/.openzeppelin
+            cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/.openzeppelin/${{ github.event.inputs.network }}.json \
+              deployments/${{ github.event.inputs.network }}/.openzeppelin/
+          fi
 
       # ─── Deploy / upgrade ────────────────────────────────────────────────
       - name: Deploy / upgrade

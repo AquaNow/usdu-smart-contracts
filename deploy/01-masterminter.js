@@ -21,8 +21,16 @@ module.exports = async ({ getNamedAccounts }) => {
         await upgrades.validateUpgrade(existingDep.address, Factory,
           { unsafeAllow: ["delegatecall", "custom-types"] });
       } catch (err) {
-        console.error("❌ Upgrade validation failed for MasterMinter.");
-        throw err;
+        if (/not registered/i.test(err.message)) {
+          console.warn("Manifest missing – importing proxy into OpenZeppelin manifest…");
+          await upgrades.forceImport(existingDep.address, Factory, { kind: "transparent" });
+          // now retry validation
+          await upgrades.validateUpgrade(existingDep.address, Factory,
+            { unsafeAllow: ["delegatecall", "custom-types"] });
+        } else {
+          console.error("❌ Upgrade validation failed for MasterMinter.");
+          throw err;
+        }
       }
 
       const predictedImpl = await upgrades.prepareUpgrade(
@@ -85,4 +93,4 @@ module.exports = async ({ getNamedAccounts }) => {
     throw err;                              // bubbles to Hardhat / CI
   }
 };
-module.exports.tags = ["masterminter", "all"];
+module.exports.tags = ["masterminter", "masterminter-token", "all"];

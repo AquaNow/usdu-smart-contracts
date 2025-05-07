@@ -87,7 +87,17 @@ async function main() {
   );
 
   await fs.writeFile(path.join(archiveDir, ".chainId"), network.config.chainId.toString());
-  
+
+  // ─── archive the OpenZeppelin manifest ─────────────────
+  console.log("✓ Trying to archive OpenZeppelin manifest")
+  const ozSrc = path.join(__dirname, "..", ".openzeppelin", `${network.name}.json`);
+  const ozDstDir = path.join(archiveDir, ".openzeppelin");
+  if (await fs.pathExists(ozSrc)) {
+    await fs.ensureDir(ozDstDir);
+    await fs.copyFile(ozSrc, path.join(ozDstDir, `${network.name}.json`));
+    console.log("✓ OpenZeppelin manifest archived");
+  }
+
   console.log(`🎉 Snapshot saved to ${archiveDir}`);
 }
 
