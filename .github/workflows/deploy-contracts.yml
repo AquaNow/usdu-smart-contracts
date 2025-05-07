@@ -90,17 +90,6 @@ jobs:
             mainnet)  echo 1        > deployments/${{ github.event.inputs.network }}/.chainId ;;
           esac
 
-      # ─── Ensure .chainId matches the chosen network ────────────────
-      - name: Write correct chainId marker
-        shell: bash
-        run: |
-          case "${{ github.event.inputs.network }}" in
-            sepolia)  ID=11155111 ;;
-            mainnet)  ID=1 ;;
-            *)        echo "Unknown network" ; exit 1 ;;
-          esac
-          echo "$ID" > deployments/${{ github.event.inputs.network }}/.chainId
-
       # ─── Deploy / upgrade ────────────────────────────────────────────────
       - name: Deploy / upgrade
         run: npm run deploy -- ${{ github.event.inputs.network }} --tags ${{ github.event.inputs.tag }}
