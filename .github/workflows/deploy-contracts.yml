@@ -3,9 +3,6 @@ name: Deploy / Upgrade Contracts
 permissions:
   id-token: write
   contents: read
-  checks: write
-  packages: read
-  statuses: write
 
 on:
   workflow_dispatch:
