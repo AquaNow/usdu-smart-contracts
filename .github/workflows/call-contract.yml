@@ -64,7 +64,7 @@ jobs:
         run: npm ci
       - uses: ./.github/actions/aws-setup
         with:
-          role: ${{ github.ref == 'refs/heads.main' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
+          role: ${{ github.ref == 'refs/heads/main' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
 
       # ─── Fireblocks credentials (decode base64 into temp key file) ───────
       - name: Prepare Fireblocks credentials
