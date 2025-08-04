@@ -96,9 +96,9 @@ jobs:
           echo "✓ Trying to restore OpenZeppelin manifest"
           if [[ -f deployments/archive/$SNAP/${{ github.event.inputs.network }}/.openzeppelin/${{ github.event.inputs.network }}.json ]]; then
             echo "✓ OpenZeppelin manifest restored"
-            mkdir -p deployments/${{ github.event.inputs.network }}/.openzeppelin
+            mkdir -p .openzeppelin
             cp deployments/archive/$SNAP/${{ github.event.inputs.network }}/.openzeppelin/${{ github.event.inputs.network }}.json \
-              deployments/${{ github.event.inputs.network }}/.openzeppelin/
+              .openzeppelin/
           fi
 
       # ─── Deploy / upgrade ────────────────────────────────────────────────
