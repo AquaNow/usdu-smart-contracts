@@ -41,7 +41,7 @@ jobs:
       (github.ref == 'refs/heads/develop' && github.event.inputs.network == 'sepolia') ||
       (github.ref == 'refs/heads/main'    && contains(fromJSON('["sepolia","mainnet"]'), github.event.inputs.network))
     runs-on: usduRunner
-    environment: ${{ github.ref == 'refs/heads.main' && 'PROD' || 'DEV' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'PROD' || 'DEV' }}
 
     env:
       AWS_REGION:       ${{ vars.AWS_REGION }}
