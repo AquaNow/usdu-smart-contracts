@@ -1,0 +1,62 @@
+name: Show Named Accounts
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Target network to fetch the named accounts from"
+        type: choice
+        options: [sepolia, mainnet]
+        default: sepolia
+
+jobs:
+  show:
+    if: |
+      (github.ref == 'refs/heads/develop' && github.event.inputs.network == 'sepolia') ||
+      (github.ref == 'refs/heads/main'    && contains(fromJSON('["sepolia","mainnet"]'), github.event.inputs.network))
+    runs-on: usduRunner
+    environment: ${{ github.ref == 'refs/heads/main' && 'PROD' || 'DEV' }}
+
+    env:
+      AWS_REGION:          ${{ vars.AWS_REGION }}
+      SEPOLIA_RPC_URL:     ${{ secrets.SEPOLIA_RPC_URL }}
+      MAINNET_RPC_URL:     ${{ secrets.MAINNET_RPC_URL }}
+      DEPLOY_METHOD:     fireblocks
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.18.x"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+
+      # ─── Fireblocks credentials (decode base64 into temp key file) ───────
+      - name: Prepare Fireblocks credentials
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.network }}" == "mainnet" ]]; then
+            echo "FIREBLOCKS_API_KEY_PROD=${{ secrets.FIREBLOCKS_API_KEY_PROD }}" >> $GITHUB_ENV
+            echo "${{ secrets.FIREBLOCKS_PK_PROD_B64 }}" | base64 -d > $RUNNER_TEMP/fb.key
+            echo "FIREBLOCKS_PK_PATH_PROD=$RUNNER_TEMP/fb.key" >> $GITHUB_ENV
+            echo "FIREBLOCKS_VAULT_IDS_PROD=${{ secrets.FIREBLOCKS_VAULT_IDS_PROD }}" >> $GITHUB_ENV
+          else
+            echo "FIREBLOCKS_API_KEY_DEV=${{ secrets.FIREBLOCKS_API_KEY_DEV }}" >> $GITHUB_ENV
+            echo "${{ secrets.FIREBLOCKS_PK_DEV_B64 }}" | base64 -d > $RUNNER_TEMP/fb.key
+            echo "FIREBLOCKS_PK_PATH_DEV=$RUNNER_TEMP/fb.key" >> $GITHUB_ENV
+            echo "FIREBLOCKS_VAULT_IDS_DEV=${{ secrets.FIREBLOCKS_VAULT_IDS_DEV }}" >> $GITHUB_ENV
+          fi
+          chmod 600 $RUNNER_TEMP/fb.key
+
+      - name: Show accounts / balances
+        run: node scripts/show-accounts.js --network ${{ github.event.inputs.network }}

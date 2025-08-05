@@ -7,50 +7,61 @@ require("@fireblocks/hardhat-fireblocks");
 require("hardhat-gas-reporter");
 require("hardhat-deploy");
 require("dotenv").config();
+const { requireEnv, getEnv } = require("./helpers/deploy-utils");
 
-const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || "https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY"
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "https://eth-sepolia.g.alchemy.com/v2/YOUR-API-KEY";
-const BSC_TESTNET_RPC_URL = process.env.BSC_TESTNET_RPC_URL || "https://eth-bsctestnet.g.alchemy.com/v2/YOUR-API-KEY";
-const LOCALHOST_RPC_URL = process.env.LOCALHOST_RPC_URL || "http://localhost:8545";
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x";
-const FIREBLOCKS_API_KEY = process.env.FIREBLOCKS_API_KEY || "Your fireblocks API key";
-const FIREBLOCKS_PRIVATE_KEY_PATH = process.env.FIREBLOCKS_PRIVATE_KEY_PATH || "./fireblocks_secret.key";
+// Get network from command line arguments
+const argvNet = (() => {
+  const i = process.argv.indexOf("--network");
+  return i !== -1 && i + 1 < process.argv.length ? process.argv[i + 1] : undefined;
+})();
 
-// Use specific vault IDs for each role
-const FB_OWNER_VAULT_ID = process.env.FB_OWNER_VAULT_ID || "15"; // USDU Contract Owner
-const FB_MINTING_ADMIN_VAULT_ID = process.env.FB_MINTING_ADMIN_VAULT_ID || "16"; // USDU Contract Admin - Minting
-const FB_SECURITY_VAULT_ID = process.env.FB_SECURITY_VAULT_ID || "17"; // USDU Contract Admin - Security
-const FB_OPERATIONS_VAULT_ID = process.env.FB_OPERATIONS_VAULT_ID || "18"; // USDU Contract Admin - Operations
-const FB_PORTAL_VAULT_ID = process.env.FB_PORTAL_VAULT_ID || "19"; // USDU Portal Interface
-const FB_TREASURY_VAULT_ID = process.env.FB_TREASURY_VAULT_ID || "20"; // USDU Treasury
+const MAINNET_RPC_URL = getEnv("MAINNET_RPC_URL", "https://mainnet.infura.io/v3/placeholder");
+const SEPOLIA_RPC_URL = getEnv("SEPOLIA_RPC_URL", "https://sepolia.infura.io/v3/placeholder");
+const LOCALHOST_RPC_URL = getEnv("LOCALHOST_RPC_URL", "http://localhost:8545");
 
-// Default to owner vault ID if not specified
-const VAULT_ID = process.env.VAULT_ID || FB_OWNER_VAULT_ID;
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key";
-const REPORT_GAS = process.env.REPORT_GAS || false;
+const FB_KEY_ENV = {
+  mainnet: {
+    apiKey: "FIREBLOCKS_API_KEY_PROD",
+    pkPath: "FIREBLOCKS_PK_PATH_PROD",
+    vaultIds: "FIREBLOCKS_VAULT_IDS_PROD",
+  },
+  sepolia: {
+    apiKey: "FIREBLOCKS_API_KEY_DEV",
+    pkPath: "FIREBLOCKS_PK_PATH_DEV",
+    vaultIds: "FIREBLOCKS_VAULT_IDS_DEV",
+  },
+};
 
-const DEPLOY_METHOD = process.env.DEPLOY_METHOD || "privatekey"; // default to private key if not specified
+const ETHERSCAN_API_KEY = getEnv("ETHERSCAN_API_KEY", "placeholder");
+const REPORT_GAS = getEnv("REPORT_GAS", false) === "true";
+const DEPLOY_METHOD = getEnv("DEPLOY_METHOD", "privatekey");
 
-function getNetworkConfig(url, chainId) {
-  if (DEPLOY_METHOD === "fireblocks") {
-      return {
-          url,
-          saveDeployments: true,
-          chainId,
-          fireblocks: {
-              privateKey: FIREBLOCKS_PRIVATE_KEY_PATH,
-              apiKey: FIREBLOCKS_API_KEY,
-              vaultAccountIds: VAULT_ID, // Default vault for transaction signing
-          },
-      };
-  } else {
-      return {
-          url,
-          accounts: PRIVATE_KEY !== "0x" ? [PRIVATE_KEY] : [],
-          chainId,
-          saveDeployments: true,
-      };
+function getNetworkConfig(url, chainId, net, privateKey = "0x") {
+  if (DEPLOY_METHOD === "fireblocks" && argvNet === net) {
+    const apiKey = requireEnv(FB_KEY_ENV[net].apiKey);
+    const pkPath = requireEnv(FB_KEY_ENV[net].pkPath);
+    const vaultIds = requireEnv(FB_KEY_ENV[net].vaultIds).split(",");
+
+    return {
+      url,
+      saveDeployments: true,
+      chainId,
+      fireblocks: {
+        privateKey: pkPath,
+        apiKey: apiKey,
+        vaultAccountIds: vaultIds,
+      },
+      accounts: [],
+    };
   }
+
+  // --- local key deployment ----------------------------------------------
+  return {
+    url,
+    accounts: privateKey !== "0x" ? [privateKey] : [],
+    chainId,
+    saveDeployments: true,
+  };
 }
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -58,95 +69,42 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-        chainId: 31337,
+      chainId: 31337,
     },
     localhost: {
       url: LOCALHOST_RPC_URL,
       chainId: 31337
     },
-    sepolia: getNetworkConfig(SEPOLIA_RPC_URL, 11155111),
-    mainnet: getNetworkConfig(MAINNET_RPC_URL, 1),
-    bscTestnet: getNetworkConfig(BSC_TESTNET_RPC_URL, 97),
+    sepolia: getNetworkConfig(SEPOLIA_RPC_URL, 11155111, "sepolia"),
+    mainnet: getNetworkConfig(MAINNET_RPC_URL, 1, "mainnet"),
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
   },
   namedAccounts: {
-    deployer: {
-      default: 0, // Default for local testing
-      // For Fireblocks deployments, use the vault IDs directly
-      1: FB_OWNER_VAULT_ID, // mainnet
-      11155111: FB_OWNER_VAULT_ID, // sepolia
-      97: FB_OWNER_VAULT_ID, // bscTestnet
-    },
-    security: {
-      default: 3,
-      1: FB_SECURITY_VAULT_ID,
-      11155111: FB_SECURITY_VAULT_ID,
-      97: FB_SECURITY_VAULT_ID,
-    },
-    minter: {
-      default: 2,
-      1: FB_OPERATIONS_VAULT_ID,
-      11155111: FB_OPERATIONS_VAULT_ID,
-      97: FB_OPERATIONS_VAULT_ID,
-    },
-    blacklister: {
-      default: 3,
-      1: FB_SECURITY_VAULT_ID,
-      11155111: FB_SECURITY_VAULT_ID,
-      97: FB_SECURITY_VAULT_ID,
-    },
-    pauser: {
-      default: 3,
-      1: FB_SECURITY_VAULT_ID,
-      11155111: FB_SECURITY_VAULT_ID,
-      97: FB_SECURITY_VAULT_ID,
-    },
-    rescuer: {
-      default: 3,
-      1: FB_SECURITY_VAULT_ID,
-      11155111: FB_SECURITY_VAULT_ID,
-      97: FB_SECURITY_VAULT_ID,
-    },
-    mintingAdmin: {
-      default: 1,
-      1: FB_MINTING_ADMIN_VAULT_ID,
-      11155111: FB_MINTING_ADMIN_VAULT_ID,
-      97: FB_MINTING_ADMIN_VAULT_ID,
-    },
-    operations: {
-      default: 2,
-      1: FB_OPERATIONS_VAULT_ID,
-      11155111: FB_OPERATIONS_VAULT_ID,
-      97: FB_OPERATIONS_VAULT_ID,
-    },
-    portal: {
-      default: 6,
-      1: FB_PORTAL_VAULT_ID,
-      11155111: FB_PORTAL_VAULT_ID,
-      97: FB_PORTAL_VAULT_ID,
-    },
-    treasury: {
-      default: 7,
-      1: FB_TREASURY_VAULT_ID,
-      11155111: FB_TREASURY_VAULT_ID,
-      97: FB_TREASURY_VAULT_ID,
-    }
+    deployer: { default: 0 },
+    mintingAdmin: { default: 1 },
+    operations: { default: 2 },
+    security: { default: 3 },
+    minter: { default: 2 },
+    blacklister: { default: 3 },
+    pauser: { default: 3 },
+    rescuer: { default: 3 },
+    portal: { default: 4 },
+    treasury: { default: 5 },
   },
   gasReporter: {
     enabled: REPORT_GAS,
     currency: "USD",
-    outputFile: "gas-report.txt",
     noColors: true,
   },
   solidity: {
-      version: "0.8.11",
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 10000, // Expect to run 10000 times
-        },
+    version: "0.8.11",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10000, // Expect to run 10000 times
       },
     },
+  },
 };
