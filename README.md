@@ -89,21 +89,12 @@ Deploy the smart contracts to various networks using Hardhat. Before deploying, 
 - `DEPLOY_METHOD`: Method of deployment (`privatekey` or `fireblocks`).
 - `POLYGONSCAN_API_KEY`: API key for verifying contracts on Polygonscan.
 
-### Example `.env` File
+### Environment Setup
 
-```
-MAINNET_RPC_URL=https://eth-mainnet.alchemyapi.io/v2/your-api-key
-SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/your-api-key
-BSC_TESTNET_RPC_URL=https://bsc-testnet.blockpi.network/v1/rpc/public
-LOCALHOST_RPC_URL=http://localhost:8545
-PRIVATE_KEY=0x
-FIREBLOCKS_API_KEY=your-fireblocks-api-key
-FIREBLOCKS_PRIVATE_KEY_PATH=your-fireblocks-private-key-path
-VAULT_ID=your-vault-id
-ETHERSCAN_API_KEY=your-etherscan-api-key
-REPORT_GAS=false
-DEPLOY_METHOD=privatekey
-POLYGONSCAN_API_KEY=your-polygonscan-api-key
+Copy the example environment file to create your own `.env` file:
+
+```bash
+cp .env.example .env
 ```
 
 ### Prerequisites for Deployment
@@ -141,6 +132,10 @@ npx hardhat deploy --network <network-name>
 - `.solhint.json`: Configuration file for Solhint.
 - `hardhat.config.js`: Configuration file for Hardhat.
 
+## Security
+
+For security concerns, please refer to [SECURITY.md](SECURITY.md).
+
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
