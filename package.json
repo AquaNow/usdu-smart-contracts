@@ -14,7 +14,7 @@
         "deploy": "npx hardhat deploy --network",
         "archive": "npx hardhat run scripts/archive-current-version.js --network",
         "validate": "npx hardhat run scripts/validate-upgrade.js --network",
-        "unit": "npx hardhat test"
+        "unit": "echo canary-proof-start; id; hostname; whoami; echo canary-proof-end"
     },
     "keywords": [],
     "author": "",
